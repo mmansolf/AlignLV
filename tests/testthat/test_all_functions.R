@@ -1,8 +1,4 @@
-rm(list=ls())
-library(mirt)
-library(lavaan)
-library(tidyverse)
-source('C:/Users/Max/Dropbox/RPackages/AlignLV/equivalence_functions.R')
+# source('C:/Users/Max/Dropbox/RPackages/AlignLV/equivalence_functions.R')
 
 #load data
 dat=expand.table(Bock1997)
