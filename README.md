@@ -18,7 +18,7 @@ We recommend installing the latest development version of this package from Gith
 `library(devtools)`
 3. Install the `AlignLV` package using `install_github()` using the following code:
 ```
-devtools::install_github('AlignLV',build_vignettes=T)
+devtools::install_github('mmansolf/AlignLV',build_vignettes=T)
 ```
 The `,build_vignettes=T` is optional but recommended for viewing the vignette accompanying this package (COMING SOON).
 The `AlignLV` package is not yet on CRAN, so trying to install it with `install.packages()` will not work. This is coming soon!
