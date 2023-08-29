@@ -1,4 +1,12 @@
-#prepare coefficients for alignment
+#' Prepare \code{mirt} estimates for alignment
+#'
+#' Not generally intended to be used on its own, but exported anyway for didactic purposes.
+#'
+#' See example for \code{\link{Alignment}} for examples
+#'
+#' This may differ from what is used in Mplus.
+#'
+#' @export
 getEstimates.mirt=function(fit,SE=T,bifactor.marginal=F){
   #coefficients
   coef.raw=coef(fit,printSE=SE)
@@ -102,7 +110,15 @@ getEstimates.mirt=function(fit,SE=T,bifactor.marginal=F){
               se.a=se.a.toalign,se.d=se.d.toalign))
 }
 
-#prepare coefficients for alignment
+#' Prepare \code{lavaan} estimates for alignment
+#'
+#' Not generally intended to be used on its own, but exported anyway for didactic purposes.
+#'
+#' See example for \code{\link{Alignment}} for examples
+#'
+#' This may differ from what is used in Mplus.
+#'
+#' @export
 getEstimates.lavaan=function(fit,SE=T){
   #coefficients
   coef.raw=lavInspect(fit,'est')
@@ -154,7 +170,15 @@ getEstimates.lavaan=function(fit,SE=T){
               parameterization=fit@Options$parameterization))
 }
 
-#transform estimates
+#' Transform \code{mirt} estimates using aligned estimates of latent mean and variance
+#'
+#' Not generally intended to be used on its own, but exported anyway for didactic purposes.
+#'
+#' See example for \code{\link{Alignment}} for examples
+#'
+#' This may differ from what is used in Mplus.
+#'
+#' @export
 transformEstimates.mirt.grm=function(align.mean,align.variance,est){
   # est=out
   # align.mean=means
@@ -198,6 +222,15 @@ length(mean)==dim(est)[3]')
               se.a=se.a,se.d=se.d))
 }
 
+#' Transform \code{lavaan} estimates using aligned estimates of latent mean and variance
+#'
+#' Not generally intended to be used on its own, but exported anyway for didactic purposes.
+#'
+#' See example for \code{\link{Alignment}} for examples
+#'
+#' This may differ from what is used in Mplus.
+#'
+#' @export
 transformEstimates.lavaan.ordered=function(align.mean,align.variance,est,toCompare=NULL){
   #My current thinking: under the delta parameterization, the transformed
   #estimates (calculate delta, incorporate it into parameters, then
@@ -299,7 +332,15 @@ model with incomparable parameters (toCompare=F) or comparable parameters (toCom
               se.lambda=se.lambda,se.tau=se.tau))
 }
 
-#load estimates
+#' Estimate \code{mirt} models using aligned parameter estimates
+#'
+#' Not generally intended to be used on its own, but exported anyway for didactic purposes.
+#'
+#' See example for \code{\link{Alignment}} for examples
+#'
+#' This may differ from what is used in Mplus.
+#'
+#' @export
 loadEstimates.mirt.grm=function(fit,align.mean,align.variance,newpars,do.fit=T){
   # fit=fitList[[1]]
   # align.mean=means.vars[[1]][1]
@@ -348,6 +389,15 @@ loadEstimates.mirt.grm=function(fit,align.mean,align.variance,newpars,do.fit=T){
   out
 }
 
+#' Estimate \code{lavaan} models using aligned parameter estimates
+#'
+#' Not generally intended to be used on its own, but exported anyway for didactic purposes.
+#'
+#' See example for \code{\link{Alignment}} for examples
+#'
+#' This may differ from what is used in Mplus.
+#'
+#' @export
 loadEstimates.lavaan.ordered=function(fit,align.mean,align.variance,newpars,do.fit=T){
   # fit=fit.lavaan
   # align.mean=1
@@ -385,8 +435,15 @@ loadEstimates.lavaan.ordered=function(fit,align.mean,align.variance,newpars,do.f
   out
 }
 
-#stack estimates
-#Input: list, one element per model, each of which has elements depending on the model (e.g., a and ds for mirt)
+#' Stack estimates for optimization
+#'
+#' Not generally intended to be used on its own, but exported anyway for didactic purposes.
+#'
+#' See example for \code{\link{Alignment}} for examples
+#'
+#' This may differ from what is used in Mplus.
+#'
+#' @export
 stackEstimates=function(estList){
   # estList=outByCohort%>%map(~.$fit.mirt.pss)%>%map(getEstimates.mirt,SE=T)
   # estList=est.base
@@ -472,7 +529,15 @@ CLF=function(x,e=.01){
 #weight function
 W=function(x,y) return(sqrt(x*y))
 
-#vectorized simplicity function for mplus alignment; runs across 3 dimensions
+#' Simplicity function for alignment
+#'
+#' Not generally intended to be used on its own, but exported anyway for didactic purposes.
+#'
+#' See example for \code{\link{Alignment}} for examples
+#'
+#' This may differ from what is used in Mplus.
+#'
+#' @export
 SF.mplus3D=function(pars,est,comb,nobs,estimator){
   # pars=c(rnorm(ngroups-1,0,5),abs(rnorm(ngroups-1,0,3)))
   # est=stacked
@@ -546,9 +611,15 @@ factory <- function(fun){
   }}
 fact.mirt=factory(mirt)
 
-#alignment
-
-#alignment
+#' Runs alignment optimizer
+#'
+#' Not generally intended to be used on its own, but exported anyway for didactic purposes.
+#'
+#' See example for \code{\link{Alignment}} for examples
+#'
+#' This may differ from what is used in Mplus.
+#'
+#' @export
 align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,parallel=F,center.means){
 
   # stacked=stackEstimates(est.base)
@@ -653,46 +724,4 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,parallel=F,center.m
 
   #return just means and variances
   return(mapply(function(x,y)c(mean=x,var=y),as.list(align.means),as.list(align.variances),SIMPLIFY=F))
-}
-
-#surf's up big kahuna
-Alignment=function(fitList,estimator,...){
-  # fitList=fit.base2
-  # estimator='mirt.grm'
-  # fitList=fit.base
-  # estimator='lavaan.ordered'
-  # fitList=fit.base2
-  # estimator='mirt.grm'
-  if(estimator=='mirt.grm'){
-    #get all estimates
-    # print(fitList%>%map(getEstimates.mirt,SE=T))
-    est=fitList%>%map(getEstimates.mirt,SE=T)
-    #align
-    means.vars=align.optim(est%>%stackEstimates,
-                           n=fitList%>%map_dbl(~.@Data$N),
-                           estimator=estimator,...)
-    #get aligned estimates
-    test=map2(est,means.vars,
-              ~transformEstimates.mirt.grm(.y[1],.y[2],.x))
-    #fitted, aligned models
-    tfit=list(fitList,test,means.vars)%>%pmap(
-      function(x,y,z)loadEstimates.mirt.grm(x,z[1],z[2],y,do.fit=T))
-  } else if(estimator=='lavaan.ordered'){
-    #get all estimates
-    est=fitList%>%map(getEstimates.lavaan,SE=T)
-    #align
-    means.vars=align.optim(est%>%stackEstimates,
-                           n=fitList%>%map_dbl(~.@Data@nobs[[1]]),
-                           estimator=estimator,...)
-    #get aligned estimates
-    test=map2(est,means.vars
-              ,~transformEstimates.lavaan.ordered(.y[1],.y[2],.x,
-                                                  toCompare=F))
-    #fitted, aligned models
-    tfit=list(fitList,test,means.vars)%>%pmap(
-      function(x,y,z)loadEstimates.lavaan.ordered(x,z[1],z[2],y,do.fit=T))
-  }
-  names(means.vars)=names(test)
-  #return stuff
-  return(list(fit=tfit,est=test,hypers=means.vars))
 }
