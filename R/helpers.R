@@ -120,6 +120,11 @@ getEstimates.mirt=function(fit,SE=T,bifactor.marginal=F){
 #'
 #' @export
 getEstimates.lavaan=function(fit,SE=T){
+  # fit=models2align$youngerPlay$`6-11_Play`
+  # SE=F
+  # minCats=models2align$youngerPlay%>%map(~.@Data@X[[1]]%>%
+  #   apply(2,min))
+
   #coefficients
   coef.raw=lavInspect(fit,'est')
   if(SE)se.raw=lavInspect(fit,'se')
@@ -142,7 +147,22 @@ getEstimates.lavaan=function(fit,SE=T){
   tau.raw=coef.raw$tau%>%as.data.frame%>%rownames_to_column('rowname')%>%
     mutate(Item=strsplit(rowname,'|',fixed=T)%>%map_chr(~.[1]),
            Threshold=strsplit(rowname,'|',fixed=T)%>%map_chr(~.[2]))%>%
-    select(-rowname)%>%
+    select(-rowname)
+  #apply observed levels to thresholds
+  obs.thresh=fit@Data@ov$lnam%>%
+    strsplit('|',fixed=T)%>%
+    map(~paste0(.[1:(length(.)-1)],'_',.[2:length(.)]))%>%
+    map(~tibble(Threshold=as.character(1:length(.)),
+                boundary=.))%>%
+    setNames(fit@Data@ov$name)%>%
+    imap(~mutate(.x,Item=.y))%>%bind_rows
+  tau.raw=tau.raw%>%
+    mutate(Threshold=gsub('t','',Threshold,fixed=T))%>%
+    left_join(obs.thresh,by=c('Item','Threshold'))%>%
+    mutate(boundary=paste0('t',boundary))%>%
+    select(-Threshold)%>%rename(Threshold=boundary)
+  #finish preparing
+  tau.raw=tau.raw%>%
     pivot_wider(id_cols=Item,names_from=Threshold,values_from=threshold)%>%
     as.data.frame
   rownames(tau.raw)=tau.raw$Item
@@ -155,6 +175,10 @@ getEstimates.lavaan=function(fit,SE=T){
       mutate(Item=strsplit(rowname,'|',fixed=T)%>%map_chr(~.[1]),
              Threshold=strsplit(rowname,'|',fixed=T)%>%map_chr(~.[2]))%>%
       select(-rowname)%>%
+      mutate(Threshold=gsub('t','',Threshold,fixed=T))%>%
+      left_join(obs.thresh,by=c('Item','Threshold'))%>%
+      mutate(boundary=paste0('t',boundary))%>%
+      select(-Threshold)%>%rename(Threshold=boundary)%>%
       pivot_wider(id_cols=Item,names_from=Threshold,values_from=threshold)%>%
       as.data.frame
     rownames(se.tau.raw)=se.tau.raw$Item
@@ -689,10 +713,6 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,parallel=F,center.m
     if(length(failedruns)>0)parout=parout[-failedruns,]
 
     #name parameter list
-    print("Printing parout...")
-    print(parout)
-    print(str(parout))
-    print(ngroups)
     colnames(parout)=c("f","convergence",
                        paste0("M.",2:ngroups),
                        paste0("V.",2:ngroups))
