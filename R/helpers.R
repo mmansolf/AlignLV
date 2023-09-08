@@ -718,6 +718,7 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,parallel=F,center.m
                        paste0("V.",2:ngroups))
 
     #populate
+    #this line takes the lowest objective function value
     align.hyperpars=parout[order(parout[,1],decreasing=F)[1],-c(1,2)]
     align.means=align.hyperpars[1:(ngroups-1)]
     align.variances=align.hyperpars[((ngroups-1)+1):((ngroups-1)*2)]
