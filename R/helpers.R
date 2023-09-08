@@ -547,6 +547,7 @@ stackEstimates=function(estList){
 
 #simplicity function
 CLF=function(x,e=.01){
+  # return(sqrt(ifelse(x^2>e,x^2,0)))
   return(sqrt(sqrt(x^2+e)))
 }
 
@@ -609,7 +610,10 @@ SF.mplus3D=function(pars,est,comb,nobs,estimator){
   # m=sum(CLF(mA-mB),na.rm=T)
   t.est%>%map(function(x)CLF(x[,,comb[1,]]-x[,,comb[2,]])*
                 W(nobs[comb[1,]],nobs[comb[2,]])/
-                sum(!is.na(x[,,comb[1,]]-x[,,comb[2,]])))%>%Reduce(c,.)%>%sum(na.rm=T)
+                sum(!is.na(x[,,comb[1,]]-x[,,comb[2,]])))%>%Reduce(c,.)%>%
+    ifelse(.<quantile(.,.25,na.rm=T),
+           # quantile(.,.25,na.rm=T)
+           0,.)%>%sum(na.rm=T)
 
   #shrink effect of sample size - log transform
   # nobs=log(nobs)
