@@ -96,7 +96,8 @@
 #' #appears so!
 #'
 Alignment=function(fitList,estimator,eps.alignment=0.01,
-                   bifactor.marginal=F,hyperFirst='variances',
+                   bifactor.marginal=F,
+                   hyperFirst='variances',center.means=T,
                    ncores=3,...){
   # fitList=fit.base2
   # estimator='mirt.grm'
