@@ -95,7 +95,9 @@
 #'     transpose)[paste0('Item_',1:3)]%>%map(~mean(.[[1]]-.[[2]]))
 #' #appears so!
 #'
-Alignment=function(fitList,estimator,...){
+Alignment=function(fitList,estimator,eps.alignment=0.01,
+                   bifactor.marginal=F,hyperFirst='no',
+                   ncores=3,...){
   # fitList=fit.base2
   # estimator='mirt.grm'
   # fitList=fit.base
@@ -105,24 +107,38 @@ Alignment=function(fitList,estimator,...){
   if(estimator=='mirt.grm'){
     #get all estimates
     # print(fitList%>%map(getEstimates.mirt,SE=T))
-    est=fitList%>%map(getEstimates.mirt,SE=T)
+    est=fitList%>%map(getEstimates.mirt,SE=F,
+                      bifactor.marginal=bifactor.marginal)
     #align
-    means.vars=align.optim(est%>%stackEstimates,
+    means.vars.parout=align.optim(est%>%stackEstimates,
                            n=fitList%>%map_dbl(~.@Data$N),
-                           estimator=estimator,...)
+                           estimator=estimator,eps.alignment=eps.alignment,
+                           hyperFirst=hyperFirst,
+                           ncores=ncores,...)
+    means.vars=means.vars.parout$mv
+    parout=means.vars.parout$parout
     #get aligned estimates
     test=map2(est,means.vars,
               ~transformEstimates.mirt.grm(.y[1],.y[2],.x))
     #fitted, aligned models
+    # print('hi')
+    # fl<<-fitList
+    # tt<<-test
+    # mv<<-means.vars
     tfit=list(fitList,test,means.vars)%>%pmap(
       function(x,y,z)loadEstimates.mirt.grm(x,z[1],z[2],y,do.fit=T))
+    # print('ho')
   } else if(estimator=='lavaan.ordered'){
     #get all estimates
     est=fitList%>%map(getEstimates.lavaan,SE=T)
     #align
-    means.vars=align.optim(est%>%stackEstimates,
+    means.vars.parout=align.optim(est%>%stackEstimates,
                            n=fitList%>%map_dbl(~.@Data@nobs[[1]]),
-                           estimator=estimator,...)
+                           estimator=estimator,eps.alignment=eps.alignment,
+                           hyperFirst=hyperFirst,
+                           ncores=ncores,...)
+    means.vars=means.vars.parout$mv
+    parout=means.vars.parout$parout
     #get aligned estimates
     test=map2(est,means.vars
               ,~transformEstimates.lavaan.ordered(.y[1],.y[2],.x,
@@ -133,5 +149,5 @@ Alignment=function(fitList,estimator,...){
   }
   names(means.vars)=names(test)
   #return stuff
-  return(list(fit=tfit,est=test,hypers=means.vars))
+  return(list(fit=tfit,est.og=est,est=test,hypers=means.vars,parout=parout))
 }
