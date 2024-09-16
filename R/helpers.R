@@ -934,6 +934,6 @@ Increase starting values or add more common items across groups.')
   #return means and variances, plus parout
   out=list(mv=mapply(function(x,y)c(mean=x,var=y),as.list(align.means),as.list(align.variances),SIMPLIFY=F),
            parout=parout,nFailedRuns=nFailedRuns)
-  # print(out)
+  print(out)
   return(out)
 }
