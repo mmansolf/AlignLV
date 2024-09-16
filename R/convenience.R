@@ -115,6 +115,7 @@ Alignment=function(fitList,estimator,eps.alignment=0.01,
                            n=fitList%>%map_dbl(~.@Data$N),
                            estimator=estimator,eps.alignment=eps.alignment,
                            hyperFirst=hyperFirst,
+                           center.means=center.means,
                            ncores=ncores,...)
     means.vars=means.vars.parout$mv
     parout=means.vars.parout$parout
@@ -137,6 +138,7 @@ Alignment=function(fitList,estimator,eps.alignment=0.01,
                            n=fitList%>%map_dbl(~.@Data@nobs[[1]]),
                            estimator=estimator,eps.alignment=eps.alignment,
                            hyperFirst=hyperFirst,
+                           center.means=center.means,
                            ncores=ncores,...)
     means.vars=means.vars.parout$mv
     parout=means.vars.parout$parout
