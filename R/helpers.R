@@ -8,11 +8,11 @@
 #'
 #' @export
 getEstimates.mirt=function(fit,SE=F,bifactor.marginal=F){
-  
+
   # fit=frame$fit.uni.mod[[78]]
   # SE=F
   # bifactor.marginal=F
-  
+
   #coefficients
   coef.raw=coef(fit,printSE=SE)
   if('lr.betas'%in%names(coef.raw))
@@ -25,9 +25,9 @@ getEstimates.mirt=function(fit,SE=F,bifactor.marginal=F){
   coef.raw=coef.raw[!is.na(names(coef.raw))]
   if(SE) se.raw=se.raw[fit@Data$tabdata%>%colnames]
   if(SE) se.raw=se.raw[!is.na(names(se.raw))]
-  
+
   # coef.raw=map(coef.raw,~.[,which(.!=0)])
-  
+
   #loadings
   a.raw=NULL
   if(SE) se.a.raw=NULL
@@ -52,7 +52,7 @@ getEstimates.mirt=function(fit,SE=F,bifactor.marginal=F){
     rownames(a.raw)[j]=names(coef.raw)[j]
     if(SE) rownames(se.a.raw)[j]=names(coef.raw)[j]
   }
-  
+
   #maximum number of categories maxcats
   maxcats=10
   d.raw=matrix(0,1,maxcats)
@@ -72,7 +72,7 @@ getEstimates.mirt=function(fit,SE=F,bifactor.marginal=F){
   if(SE) rownames(se.d.raw)=names(se.raw)
   if(is.null(colnames(d.raw))) colnames(d.raw)='d.1'
   if(SE) if(is.null(colnames(se.d.raw))) colnames(se.d.raw)='d.1'
-  
+
   #parameter matrix for alignment input
   pars.raw=data.frame(itemname=rownames(a.raw),a.raw,d.raw)
   names(pars.raw)=c('itemname',paste0("a.",1:ncol(a.raw)),
@@ -80,7 +80,7 @@ getEstimates.mirt=function(fit,SE=F,bifactor.marginal=F){
   if(SE) ses.raw=data.frame(itemname=rownames(se.a.raw),se.a.raw,se.d.raw)
   if(SE) names(ses.raw)=c('itemname',paste0("a.",1:ncol(se.a.raw)),
                           paste0("d.",1:ncol(se.d.raw)))
-  
+
   #get model parameters, ready to align
   a.toalign=as.matrix(pars.raw[,c(paste0("a.1"))])
   row.names(a.toalign)=pars.raw[,1]
@@ -92,7 +92,7 @@ getEstimates.mirt=function(fit,SE=F,bifactor.marginal=F){
   if(SE) rownames(se.d.toalign)=names(se.raw)
   if(is.null(colnames(d.toalign))) colnames(d.toalign)='d.1'
   if(SE) if(is.null(colnames(se.d.toalign))) colnames(se.d.toalign)='d.1'
-  
+
   #intercepts
   for(j in 1:ncol(d.toalign)){
     which.na=which(d.toalign[,j]==0)
@@ -149,7 +149,7 @@ getEstimates.mirt=function(fit,SE=F,bifactor.marginal=F){
                                        min(mins):(ncol(se.d.toalign)-min(mins)-1),
                                        '.',
                                        (min(mins)+1):(ncol(se.d.toalign)-min(mins)))
-  
+
   #return
   if(!SE){
     se.a.toalign=NULL
@@ -157,10 +157,10 @@ getEstimates.mirt=function(fit,SE=F,bifactor.marginal=F){
   } else {
     colnames(se.a.toalign)='G'
   }
-  
+
   #set column names
   colnames(a.toalign)='G'
-  
+
   return(list(a=a.toalign,d=d.toalign,
               se.a=se.a.toalign,se.d=se.d.toalign))
 }
@@ -179,7 +179,7 @@ getEstimates.lavaan=function(fit,SE=T){
   # SE=F
   # minCats=models2align$youngerPlay%>%map(~.@Data@X[[1]]%>%
   #   apply(2,min))
-  
+
   #coefficients
   coef.raw=lavInspect(fit,'est')
   if(SE)se.raw=lavInspect(fit,'se')
@@ -193,9 +193,9 @@ getEstimates.lavaan=function(fit,SE=T){
   # coef.raw=coef.raw[!is.na(names(coef.raw))]
   # if(SE) se.raw=se.raw[fit@Data$tabdata%>%colnames]
   # if(SE) se.raw=se.raw[!is.na(names(se.raw))]
-  
+
   # coef.raw=map(coef.raw,~.[,which(.!=0)])
-  
+
   #loadings
   lambda.raw=coef.raw$lambda
   #thresholds
@@ -242,7 +242,7 @@ getEstimates.lavaan=function(fit,SE=T){
     se.lambda.raw=NULL
     se.tau.raw=NULL
   }
-  
+
   #return
   return(list(lambda=lambda.raw,tau=tau.raw,
               se.lambda=se.lambda.raw,se.tau=se.tau.raw,
@@ -324,15 +324,15 @@ transformEstimates.lavaan.ordered=function(align.mean,align.variance,est,toCompa
   #Turning it on results in NOT applying the reverse of the delta transformation
   #at the end.
   #As a result, I should really just use the theta parameterization throughout.
-  
+
   # est=est.base[[2]]
   # align.mean=-1
   # align.variance=2
-  
+
   # est=stackEstimates(est.base)
   # align.mean=c(0,1)
   # align.variance=c(1,2)
-  
+
   #unpack est
   lambda=est$lambda
   tau=est$tau
@@ -504,7 +504,7 @@ loadEstimates.lavaan.ordered=function(fit,align.mean,align.variance,newpars,do.f
   pt=fit@ParTable%>%as_tibble
   #lv name
   fname=pt$lhs[pt$op=='=~']%>%unique
-  
+
   #load 'em up: slopes
   for(i in 1:nrow(newpars$lambda)){
     for(j in 1:ncol(newpars$lambda)){
@@ -575,7 +575,7 @@ stackEstimates=function(estList){
             for(n in newRows[[j]][!newRows[[j]]%in%curRows[[j]]]){
               dim.out=dim(out[[j]])
               dim.out[1]=1
-              out[[j]]=abind(out[[j]],array(NA,dim.out),along=1)
+              out[[j]]=abind::abind(out[[j]],array(NA,dim.out),along=1)
               rownames(out[[j]])[nrow(out[[j]])]=n
             }
           }
@@ -583,7 +583,7 @@ stackEstimates=function(estList){
             for(n in newCols[[j]][!newCols[[j]]%in%curCols[[j]]]){
               dim.out=dim(out[[j]])
               dim.out[2]=1
-              out[[j]]=abind(out[[j]],array(NA,dim.out),along=2)
+              out[[j]]=abind::abind(out[[j]],array(NA,dim.out),along=2)
               colnames(out[[j]])[ncol(out[[j]])]=n
             }
           }
@@ -591,7 +591,7 @@ stackEstimates=function(estList){
             for(n in curRows[[j]][!curRows[[j]]%in%newRows[[j]]]){
               dim.out=dim(estList[[i]][[j]])
               dim.out[1]=1
-              estList[[i]][[j]]=abind(estList[[i]][[j]],array(NA,dim.out),along=1)
+              estList[[i]][[j]]=abind::abind(estList[[i]][[j]],array(NA,dim.out),along=1)
               rownames(estList[[i]][[j]])[nrow(estList[[i]][[j]])]=n
             }
           }
@@ -599,7 +599,7 @@ stackEstimates=function(estList){
             for(n in curCols[[j]][!curCols[[j]]%in%newCols[[j]]]){
               dim.out=dim(estList[[i]][[j]])
               dim.out[2]=1
-              estList[[i]][[j]]=abind(estList[[i]][[j]],array(NA,dim.out),along=2)
+              estList[[i]][[j]]=abind::abind(estList[[i]][[j]],array(NA,dim.out),along=2)
               colnames(estList[[i]][[j]])[ncol(estList[[i]][[j]])]=n
             }
           }
@@ -610,7 +610,7 @@ stackEstimates=function(estList){
             rownames(what2add)=rownames(estList[[i]][[j]])
             colnames(what2add)=colnames(estList[[i]][[j]])
           }
-          out[[j]]=abind(out[[j]],what2add,along=3)
+          out[[j]]=abind::abind(out[[j]],what2add,along=3)
         }
       }
     }
@@ -645,13 +645,13 @@ SF.mplus3D=function(pars,est,comb,nobs,estimator,eps.alignment,
   # comb=comb
   # nobs=n
   # estimator=estimator
-  
+
   #constants
   # nitems=nrow(mA)
   #unlist sample sizes
   if(is.list(nobs))nobs=unlist(nobs)
   ngroups=length(nobs)
-  
+
   #extract hyperparameters
   if(hyper=='all'){
     means=pars[1:(ngroups-1)]
@@ -665,13 +665,13 @@ SF.mplus3D=function(pars,est,comb,nobs,estimator,eps.alignment,
   }
   means=c(0,means)
   variances=c(1/prod(variances),variances)
-  
+
   #matrices for alignment transformation
   # means1=matrix(means[comb[1,]],nitems,dim(mA)[3],byrow=T)
   # means2=matrix(means[comb[2,]],nitems,dim(mB)[3],byrow=T)
   # variances1=matrix(variances[comb[1,]],nitems,dim(mA)[3],byrow=T)
   # variances2=matrix(variances[comb[2,]],nitems,dim(mB)[3],byrow=T)
-  
+
   #transform parameters
   if(estimator=='mirt.grm'){
     t.est=transformEstimates.mirt.grm(means,variances,est)
@@ -683,14 +683,14 @@ SF.mplus3D=function(pars,est,comb,nobs,estimator,eps.alignment,
   # mA[,1,]=mA[,1,]/sqrt(variances1)
   # mB[,1,]=mB[,1,]/sqrt(variances2)
   # dmA2=aperm(array(means1*mA[,1,],dim=c(dim(means1),1)),c(1,3,2))
-  # dmA2=do.call(abind,list(rep(list(dmA2),dim(mA)[2]-1),along=2))
+  # dmA2=do.call(abind::abind,list(rep(list(dmA2),dim(mA)[2]-1),along=2))
   # if(dim(dmA2)[3]==1)dmA2=dmA2[,,1]
   # dmB2=aperm(array(means2*mB[,1,],dim=c(dim(means2),1)),c(1,3,2))
-  # dmB2=do.call(abind,list(rep(list(dmB2),dim(mB)[2]-1),along=2))
+  # dmB2=do.call(abind::abind,list(rep(list(dmB2),dim(mB)[2]-1),along=2))
   # if(dim(dmB2)[3]==1)dmB2=dmB2[,,1]
   # mA[,2:dim(mA)[2],]=mA[,2:dim(mA)[2],]-dmA2
   # mB[,2:dim(mB)[2],]=mB[,2:dim(mB)[2],]-dmB2
-  
+
   # m=sum(CLF(mA-mB),na.rm=T)
   t.est%>%map(function(x)CLF(x[,,comb[1,]]-x[,,comb[2,]],e=eps.alignment)*
                 W(nobs[comb[1,]],nobs[comb[2,]])/
@@ -698,7 +698,7 @@ SF.mplus3D=function(pars,est,comb,nobs,estimator,eps.alignment,
     ifelse(.<quantile(.,.1,na.rm=T),
            # quantile(.,.25,na.rm=T)
            0,.)%>%sum(na.rm=T)
-  
+
   #shrink effect of sample size - log transform
   # nobs=log(nobs)
   # w=W(nobs[comb[1,]],nobs[comb[2,]])
@@ -734,34 +734,34 @@ fact.mirt=factory(mirt)
 #' @export
 align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,parallel=F,
                      hyperFirst,center.means,eps.alignment){
-  
+
   # stacked=stackEstimates(est.base)
   # n=c(100,200)
   # nstarts=3
   # ncores=3
   # estimator='lavaan.ordered'
   # center.means=F
-  
+
   # stacked=test.stack2
   # n=c(100,200)
   # nstarts=3
   # ncores=3
   # estimator='mirt.grm'
-  
+
   #get sample sizes from mirt objects
   ngroups=length(n)
-  
+
   if(ngroups>1){
     #matrices to subtract
     comb=combn(1:ngroups,2)
-    
+
     #############################################################################
     #############################################################################
     #############################################################################
     #############################################################################
-    
+
     cat("Parameters ready to align, beginning alignment... ")
-    
+
     #alignment optimization
     parmx=NULL
     #align
@@ -809,7 +809,7 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,parallel=F,
                                    control=list(maxit=10000,trace=0),
                                    lower=rep(-Inf,ngroups-1))
                         # c(value=out$value,convergence=out$convergence,par=out$par)
-                        
+
                         c(value=outM$value+outV$value,
                           convergence=outM$convergence & outV$convergence,
                           par=c(outM$par,outV$par))
@@ -835,7 +835,7 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,parallel=F,
         #           control=list(maxit=10000,trace=0),
         #           lower=c(rep(-Inf,ngroups-1),rep(1e-6,ngroups-1)))
         if(hyperFirst=='means'){
-          print('meansFirst')
+          # print('meansFirst')
           outM=optim(par=rnorm(ngroups-1,0,5),
                      fn=SF.mplus3D,method="L-BFGS-B",
                      est=stacked,comb=comb,nobs=n,estimator=estimator,
@@ -855,7 +855,7 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,parallel=F,
                        convergence=outM$convergence & outV$convergence,
                        par=c(outM$par,outV$par))
         } else if(hyperFirst=='variances') {
-          print('variancesFirst')
+          # print('variancesFirst')
           outV=optim(par=abs(rnorm(ngroups-1,0,3)),
                      fn=SF.mplus3D,method="L-BFGS-B",
                      est=stacked,comb=comb,nobs=n,estimator=estimator,
@@ -874,7 +874,7 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,parallel=F,
                        convergence=outM$convergence & outV$convergence,
                        par=c(outM$par,outV$par))
         } else if(hyperFirst=='no') {
-          print('allTogether')
+          # print('allTogether')
           out=optim(par=c(rnorm(ngroups-1,0,5),abs(rnorm(ngroups-1,0,3))),
                     fn=SF.mplus3D,method="L-BFGS-B",
                     est=stacked,comb=comb,nobs=n,estimator=estimator,
@@ -888,7 +888,7 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,parallel=F,
     print('Alignment done!')
     print(proc.time()-pct)
     parout=parmx%>%setNames(1:nstarts)%>%bind_cols%>%t
-    
+
     #reject runs that failed
     failedruns=which(parout[,2]!=0)
     nFailedRuns=length(failedruns)
@@ -897,12 +897,12 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,parallel=F,
 Increase starting values or add more common items across groups.')
     if(length(failedruns)>0)parout=parout[-failedruns,]
     if(is.null(nrow(parout)))parout=matrix(parout,nrow=1)
-    
+
     #name parameter list
     colnames(parout)=c("f","convergence",
                        paste0("M.",2:ngroups),
                        paste0("V.",2:ngroups))
-    
+
     #populate
     #this line takes the lowest objective function value
     align.hyperpars=parout[order(parout[,1],decreasing=F)[1],-c(1,2)]
@@ -913,13 +913,13 @@ Increase starting values or add more common items across groups.')
     align.variances=c(1/prod(align.variances),align.variances)
     #re-center at weighted averages for grand mean of zero
     if(center.means)align.means=align.means-weighted.mean(align.means,unlist(n))
-    
+
     #re-center such that weighted product is 1
     weighted.prod=exp(weighted.mean(log(align.variances),unlist(n)))
     align.variances=align.variances/weighted.prod
     weighted.prod=exp(weighted.mean(log(align.variances),unlist(n)))
     weighted.prod #nice
-    
+
     #means are in standard deviation units for first group; divide by SD of first group
     align.means=align.means/sqrt(align.variances[1])
     #variances just need to be divided by the first one
@@ -930,7 +930,7 @@ Increase starting values or add more common items across groups.')
     parout=NULL
     nFailedRuns=NA
   }
-  
+
   #return means and variances, plus parout
   out=list(mv=mapply(function(x,y)c(mean=x,var=y),as.list(align.means),as.list(align.variances),SIMPLIFY=F),
            parout=parout,nFailedRuns=nFailedRuns)
