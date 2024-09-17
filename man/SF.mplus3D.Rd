@@ -4,10 +4,21 @@
 \alias{SF.mplus3D}
 \title{Simplicity function for alignment}
 \usage{
-SF.mplus3D(pars, est, comb, nobs, estimator)
+SF.mplus3D(
+  pars,
+  est,
+  comb,
+  nobs,
+  estimator,
+  eps.alignment,
+  clf.ignore.quantile,
+  hyper = "all",
+  otherHyper = NULL
+)
 }
 \description{
-Not generally intended to be used on its own, but exported anyway for didactic purposes.
+Not generally intended to be used on its own, but exported anyway for
+didactic purposes.
 }
 \details{
 See example for \code{\link{Alignment}} for examples

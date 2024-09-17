@@ -7,7 +7,8 @@
 stackEstimates(estList)
 }
 \description{
-Not generally intended to be used on its own, but exported anyway for didactic purposes.
+Not generally intended to be used on its own, but exported anyway for
+didactic purposes.
 }
 \details{
 See example for \code{\link{Alignment}} for examples

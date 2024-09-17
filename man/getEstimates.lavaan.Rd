@@ -4,7 +4,7 @@
 \alias{getEstimates.lavaan}
 \title{Prepare \code{lavaan} estimates for alignment}
 \usage{
-getEstimates.lavaan(fit, SE = T)
+getEstimates.lavaan(fit, SE = TRUE)
 }
 \description{
 Not generally intended to be used on its own, but exported anyway for didactic purposes.

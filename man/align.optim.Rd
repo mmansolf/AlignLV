@@ -10,15 +10,16 @@ align.optim(
   estimator,
   nstarts = 50,
   ncores = 3,
-  parallel = F,
-  center.means
+  hyper.first,
+  center.means,
+  eps.alignment,
+  clf.ignore.quantile
 )
 }
 \description{
-Not generally intended to be used on its own, but exported anyway for didactic purposes.
+Not generally intended to be used on its own, but exported anyway
+for didactic purposes.
 }
 \details{
 See example for \code{\link{Alignment}} for examples
-
-This may differ from what is used in Mplus.
 }

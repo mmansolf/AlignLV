@@ -4,16 +4,63 @@
 \alias{Alignment}
 \title{Multiple-Group Factor Analysis Alignment from \code{mirt} or \code{lavaan}}
 \usage{
-Alignment(fitList, estimator, ...)
+Alignment(
+  fitList,
+  estimator,
+  eps.alignment = 0.01,
+  clf.ignore.quantile = 0.1,
+  bifactor.marginal = FALSE,
+  hyper.first = "variances",
+  center.means = TRUE,
+  ncores = 1
+)
 }
 \arguments{
 \item{fitList}{A \code{list} of fitted model objects. Currently only works
-for single-group, unidimensional models with no covariates.}
+for single-group, unidimensional or bifactor models with no covariates
+estimated in \code{mirt} or \code{lavaan}.}
 
 \item{estimator}{The model type used, either \code{mirt.grm} for the graded
 response model estimated in \code{mirt} or \code{lavaan.ordered} for the
 categorical factor analysis model applied by \code{lavaan} when the
 \code{ordered} input includes all variables in the model.}
+
+\item{eps.alignment}{A numeric scalar for the alignment simplicity function,
+given by (Asparouhov & Muthén, 2014, \emph{Structural Equation Modeling}):
+
+\deqn{\sqrt{\sqrt{x^2+\epsilon}}}
+
+where $x$ is the difference between corresponding estimates in each pair of
+aligned models. Lower values may cause numerical instability; default 0.01}
+
+\item{clf.ignore.quantile}{Another protection from numerical instability;
+CLF values less than the \code{clf.ignore.quantile} of the full set of CLF
+values are ignored when calculating the complexity function at each step.
+Default 0.1 for removing the lowest 10\% of CLF values.}
+
+\item{bifactor.marginal}{A logical scalar indicating whether, for bifactor
+models, alignment should take place on the marginal, rather than conditional,
+metric for slopes (Ip, 2010, \emph{Applied Psychological Measurement}).}
+
+\item{hyper.first}{A string scalar denoting which hyperparameter to align
+first. Asparouhov & Muthén (2014) align all parameters simultaneously
+(\code{'no'}); \code{'variances'} (default) performs a two-step process,
+first aligning variances, then aligning means conditional on variance
+estimates from the first step. \code{'means'} does the reverse.}
+
+\item{center.means}{A logical scalar. Alignment fixes the first group's mean
+to zero to estimate the others. If \code{center.means} is \code{TRUE}
+(default), aligned means and models are returned after subtracting the
+weighted mean \code{stats::weighted.mean()} from all mean estimates, yielding
+a (weighted) grand mean of zero. Variances are automatically rescaled such
+that their weighted product (i.e., log of weighted mean of
+\code{e^(variance)}) is 1.}
+
+\item{ncores}{Number of processor cores to distribute alignment starts
+across; on systems that support multicore processing, using additional cores
+can speed up the alignment step by roughly a factor of the number of cores.
+Defaults to 1 for no parallel processing. Requires the \code{doParallel}
+package and defaults to parallel processing if not installed.}
 }
 \description{
 Performs alignment (\url{https://www.statmodel.com/Alignment.shtml}) using
@@ -21,13 +68,18 @@ single-group models estimated in mirt or lavaan.
 }
 \examples{
 #load data
+library(mirt)
+library(lavaan)
+library(purrr)
+library(tibble)
+library(magrittr)
 dat=expand.table(Bock1997)
 #fit configural models
-fit.mirt=mirt(dat,1,SE=T)
+fit.mirt=mirt(dat,1,SE=TRUE)
 fit.lavaan=cfa(model='G =~ Item.1+Item.2+Item.3',data=dat,
                ordered=c('Item.1','Item.2','Item.3'),
-               std.lv=T,parameterization='delta')
-fit.lavaan@ParTable\%>\%as_tibble\%>\%print(n=Inf)
+               std.lv=TRUE,parameterization='delta')
+fit.lavaan@ParTable\%>\%tibble::as_tibble()\%>\%print(n=Inf)
 #test stuff
 tab=fit.lavaan@ParTable
 tab$start[23]=3
@@ -35,28 +87,30 @@ tab$est[23]=3
 fit.lavaan2=lavaan(tab,data=fit.lavaan@Data)
 
 #get estimates
-est.mirt=getEstimates.mirt(fit.mirt,SE=T,bifactor.marginal=F)
-est.lavaan=getEstimates.lavaan(fit.lavaan,SE=T)
+est.mirt=getEstimates.mirt(fit.mirt,SE=TRUE,bifactor.marginal=FALSE)
+est.lavaan=getEstimates.lavaan(fit.lavaan,SE=TRUE)
 
 #test transformations
 newMean=10
 newVar=2
 test.mirt=transformEstimates.mirt.grm(newMean,newVar,est.mirt)
-test.lavaan=transformEstimates.lavaan.ordered(newMean,newVar,est.lavaan,toCompare=F)
+test.lavaan=transformEstimates.lavaan.ordered(
+              newMean,newVar,est.lavaan,toCompare=FALSE)
 #load and test equivalence
 tfit.mirt=loadEstimates.mirt.grm(fit.mirt,newMean,newVar,newpars=test.mirt)
-coef(tfit.mirt)
+test.mirt=mirt::coef(fit.mirt)
 test.mirt
-tfit.lavaan=loadEstimates.lavaan.ordered(fit.lavaan,newMean,newVar,newpars=test.lavaan)
-tfit.lavaan@ParTable\%>\%as_tibble\%>\%print(n=Inf)
+tfit.lavaan=loadEstimates.lavaan.ordered(
+              fit.lavaan,newMean,newVar,newpars=test.lavaan)
+tfit.lavaan@ParTable\%>\%tibble::as_tibble()\%>\%print(n=Inf)
 test.lavaan
 
 #now on stacked estimates
-estList=list(est.mirt\%>\%imap(function(x,n){
+estList=list(est.mirt\%>\%purrr::imap(function(x,n){
   rownames(x)[2]=paste0(rownames(x)[2],'_ho')
   if(!n\%in\%c('a','se.a'))colnames(x)[2]=paste0(colnames(x)[2],'_ho')
   x
-}),est.mirt\%>\%imap(function(x,n){
+}),est.mirt\%>\%purrr::imap(function(x,n){
   rownames(x)[1]=paste0(rownames(x)[1],'_hi')
   if(!n\%in\%c('a','se.a'))colnames(x)[1]=paste0(colnames(x)[1],'_hi')
   x
@@ -69,37 +123,43 @@ test.stack2=transformEstimates.mirt.grm(c(0,1),c(1,1/2),stack)
 #try align?
 #lavaan
 set.seed(0)
-sim.base=list(simdata(a=as.numeric(est.mirt$a),d=est.mirt$d,N=5000,itemtype='graded',sigma=matrix(1),mu=0),
-              simdata(a=as.numeric(est.mirt$a),d=est.mirt$d,N=5000,itemtype='graded',sigma=matrix(2),mu=1))
-fit.base=sim.base\%>\%map(~cfa(model="G =~ Item_1 + Item_2 + Item_3",data=as.data.frame(.),
-                             ordered=paste0('Item_',1:3),std.lv=T,parameterization='delta'))
-fit.base\%>\%map(lavInspect,'est')\%>\%transpose
-est.base=map(fit.base,getEstimates.lavaan,SE=T)
-align.stack=align.optim(stackEstimates(est.base),c(100,200),nstarts=3,ncores=3,estimator='lavaan.ordered',center.means=F)
+sim.base=list(simdata(a=as.numeric(est.mirt$a),d=est.mirt$d,N=5000,
+                      itemtype='graded',sigma=matrix(1),mu=0),
+              simdata(a=as.numeric(est.mirt$a),d=est.mirt$d,N=5000,
+                      itemtype='graded',sigma=matrix(2),mu=1))
+fit.base=sim.base\%>\%purrr::map(~cfa(model="G =~ Item_1 + Item_2 + Item_3",
+                             data=as.data.frame(.),
+                             ordered=paste0('Item_',1:3),std.lv=TRUE,
+                             parameterization='delta'))
+fit.base\%>\%purrr::map(lavInspect,'est')\%>\%purrr::transpose
+est.base=purrr::map(fit.base,getEstimates.lavaan,SE=TRUE)
+align.stack=align.optim(stackEstimates(est.base),c(100,200),nstarts=3,
+                        ncores=3,estimator='lavaan.ordered',center.means=FALSE)
 align.stack
-fit.align=Alignment(fit.base,'lavaan.ordered',center.means=F)
+fit.align=Alignment(fit.base,'lavaan.ordered',center.means=FALSE)
 
 #mirt
 fit.base2=list()
 for(i in 1:length(sim.base)){
-  fit.base2[[i]]=mirt(sim.base[[i]],1,'graded',SE=T)
+  fit.base2[[i]]=mirt(sim.base[[i]],1,'graded',SE=TRUE)
 }
-est.base2=map(fit.base2,getEstimates.mirt,SE=T,bifactor.marginal=F)
-align.stack2=align.optim(stackEstimates(est.base2),c(100,200),nstarts=3,ncores=3,estimator='mirt.grm',center.means=F)
+est.base2=purrr::map(fit.base2,getEstimates.mirt,SE=TRUE,bifactor.marginal=FALSE)
+align.stack2=align.optim(stackEstimates(est.base2),c(100,200),nstarts=3,
+                         ncores=3,estimator='mirt.grm',center.means=FALSE)
 align.stack2
-fit.align2=Alignment(fit.base2,'mirt.grm',center.means=F,parallel=F)
+fit.align2=Alignment(fit.base2,'mirt.grm',center.means=FALSE)
 
 #did it work?
 fit.align$hypers
 fit.align2$hypers
-fit.align$est\%>\%transpose\%>\%map(~mean(.[[1]]-.[[2]]))
-fit.align2$est\%>\%transpose\%>\%map(~mean(.[[1]]-.[[2]]))
+fit.align$est\%>\%purrr::transpose\%>\%purrr::map(~mean(.[[1]]-.[[2]]))
+fit.align2$est\%>\%purrr::transpose\%>\%purrr::map(~mean(.[[1]]-.[[2]]))
 fit.align$fit
 fit.align2$fit
-(fit.align$fit\%>\%map(~.@ParTable\%>\%as_tibble\%>\%filter(free!=0))\%>\%
-  transpose)[c('start','est')]\%>\%map(~mean(.[[1]]-.[[2]]))
-(fit.align2$fit\%>\%map(coef)\%>\%
-    transpose)[paste0('Item_',1:3)]\%>\%map(~mean(.[[1]]-.[[2]]))
+(fit.align$fit\%>\%purrr::map(~.@ParTable\%>\%tibble::as_tibble\%>\%filter(free!=0))\%>\%
+  purrr::transpose)[c('start','est')]\%>\%purrr::map(~mean(.[[1]]-.[[2]]))
+(fit.align2$fit\%>\%purrr::map(coef)\%>\%
+    purrr::transpose)[paste0('Item_',1:3)]\%>\%purrr::map(~mean(.[[1]]-.[[2]]))
 #appears so!
 
 }

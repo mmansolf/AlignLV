@@ -4,7 +4,7 @@
 \alias{getEstimates.mirt}
 \title{Prepare \code{mirt} estimates for alignment}
 \usage{
-getEstimates.mirt(fit, SE = T, bifactor.marginal = F)
+getEstimates.mirt(fit, SE = FALSE, bifactor.marginal = F)
 }
 \description{
 Not generally intended to be used on its own, but exported anyway for didactic purposes.

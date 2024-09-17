@@ -2,7 +2,8 @@
 % Please edit documentation in R/helpers.R
 \name{transformEstimates.lavaan.ordered}
 \alias{transformEstimates.lavaan.ordered}
-\title{Transform \code{lavaan} estimates using aligned estimates of latent mean and variance}
+\title{Transform \code{lavaan} estimates using aligned estimates of latent
+mean and variance}
 \usage{
 transformEstimates.lavaan.ordered(
   align.mean,
@@ -12,7 +13,8 @@ transformEstimates.lavaan.ordered(
 )
 }
 \description{
-Not generally intended to be used on its own, but exported anyway for didactic purposes.
+Not generally intended to be used on its own, but exported anyway for
+didactic purposes.
 }
 \details{
 See example for \code{\link{Alignment}} for examples

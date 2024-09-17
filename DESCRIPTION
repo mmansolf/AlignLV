@@ -5,12 +5,24 @@ Authors@R:
     person("Maxwell", "Mansolf", , "maxwell.mansolf@northwestern.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-6861-8657"))
 Description: Allows for multiple group factor analysis alignment a la Mplus to be applied to lists of single-group models estimated in lavaan or mirt. Allows item sets that are overlapping but not identical, facilitating alignment in secondary data analysis where not all items may be shared across assessments.
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
-Imports: abind, car, mirt, lavaan, tidyverse
+Imports: 
+    abind,
+    car,
+    mirt,
+    lavaan,
+    tidyverse,
+    magrittr,
+    purrr,
+    stats,
+    dplyr,
+    tibble,
+    tidyr
 Suggests: 
+    doParallel,
+    foreach,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
