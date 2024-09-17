@@ -1,10 +1,10 @@
 Package: AlignLV
-Title: Multiple Group Factor Analysis Alignment Helpers for lavaan and mirt
+Title: Multiple Group Item Response Theory Alignment Helpers for Lavaan and Mirt
 Version: 0.0.0.9000
 Authors@R: 
     person("Maxwell", "Mansolf", , "maxwell.mansolf@northwestern.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-6861-8657"))
-Description: Allows for multiple group factor analysis alignment a la Mplus to be applied to lists of single-group models estimated in lavaan or mirt. Allows item sets that are overlapping but not identical, facilitating alignment in secondary data analysis where not all items may be shared across assessments.
+Description: Allows for multiple group item response theory alignment a la Mplus to be applied to lists of single-group models estimated in lavaan or mirt. Allows item sets that are overlapping but not identical, facilitating alignment in secondary data analysis where not all items may be shared across assessments.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -18,7 +18,8 @@ Imports:
     stats,
     dplyr,
     tibble,
-    tidyr
+    tidyr,
+    rlang
 Suggests: 
     doParallel,
     foreach,

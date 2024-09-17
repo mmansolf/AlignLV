@@ -186,10 +186,11 @@ getEstimates.lavaan=function(fit,SE=TRUE){
   #loadings
   lambda.raw=coef.raw$lambda
   #thresholds
-  tau.raw=coef.raw$tau%>%as.data.frame%>%tibble::rownames_to_column('rowname')%>%
-    dplyr::mutate(Item=strsplit(rowname,'|',fixed=T)%>%purrr::map_chr(~.[1]),
-           Threshold=strsplit(rowname,'|',fixed=T)%>%purrr::map_chr(~.[2]))%>%
-    dplyr::select(-rowname)
+  tau.raw=coef.raw$tau%>%as.data.frame%>%tibble::rownames_to_column('rowname')
+  tau.raw=tau.raw%>%
+    dplyr::mutate(Item=strsplit(.data$rowname,'|',fixed=T)%>%purrr::map_chr(~.[1]),
+           Threshold=strsplit(.data$rowname,'|',fixed=T)%>%purrr::map_chr(~.[2]))%>%
+    dplyr::select(-.data$rowname)
   #apply observed levels to thresholds
   obs.thresh=fit@Data@ov$lnam%>%
     strsplit('|',fixed=T)%>%
@@ -199,32 +200,40 @@ getEstimates.lavaan=function(fit,SE=TRUE){
     stats::setNames(fit@Data@ov$name)%>%
     purrr::imap(~dplyr::mutate(.x,Item=.y))%>%dplyr::bind_rows()
   tau.raw=tau.raw%>%
-    dplyr::mutate(Threshold=gsub('t','',Threshold,fixed=T))%>%
-    dplyr::left_join(obs.thresh,by=c('Item','Threshold'))%>%
-    dplyr::mutate(boundary=paste0('t',boundary))%>%
-    dplyr::select(-Threshold)%>%dplyr::rename(Threshold=boundary)
+    dplyr::mutate(Threshold=gsub('t','',.data$Threshold,fixed=T))%>%
+    dplyr::left_join(obs.thresh,by=c('Item','Threshold'))
+  tau.raw=tau.raw%>%
+    dplyr::mutate(boundary=paste0('t',.data$boundary))%>%
+    dplyr::select(-.data$Threshold)%>%dplyr::rename(Threshold=.data$boundary)
   #finish preparing
   tau.raw=tau.raw%>%
-    tidyr::pivot_wider(id_cols=Item,names_from=Threshold,values_from=threshold)%>%
+    tidyr::pivot_wider(id_cols=.data$Item,
+                       names_from=.data$Threshold,
+                       values_from=.data$threshold)%>%
     as.data.frame
   rownames(tau.raw)=tau.raw$Item
-  tau.raw=tau.raw%>%dplyr::select(-Item)%>%as.matrix
+  tau.raw=tau.raw%>%dplyr::select(-.data$Item)%>%as.matrix
   if(SE){
     #loadings
     se.lambda.raw=se.raw$lambda
     #thresholds
-    se.tau.raw=se.raw$tau%>%as.data.frame%>%tibble::rownames_to_column('rowname')%>%
-      dplyr::mutate(Item=strsplit(rowname,'|',fixed=T)%>%purrr::map_chr(~.[1]),
-             Threshold=strsplit(rowname,'|',fixed=T)%>%purrr::map_chr(~.[2]))%>%
-      dplyr::select(-rowname)%>%
-      dplyr::mutate(Threshold=gsub('t','',Threshold,fixed=T))%>%
+    se.tau.raw=se.raw$tau%>%as.data.frame%>%
+      tibble::rownames_to_column('rowname')%>%
+      dplyr::mutate(Item=strsplit(.data$rowname,'|',fixed=T)%>%
+                      purrr::map_chr(~.[1]),
+             Threshold=strsplit(.data$rowname,'|',fixed=T)%>%
+               purrr::map_chr(~.[2]))%>%
+      dplyr::select(-.data$rowname)%>%
+      dplyr::mutate(Threshold=gsub('t','',.data$Threshold,fixed=T))%>%
       dplyr::left_join(obs.thresh,by=c('Item','Threshold'))%>%
-      dplyr::mutate(boundary=paste0('t',boundary))%>%
-      dplyr::select(-Threshold)%>%dplyr::rename(Threshold=boundary)%>%
-      tidyr::pivot_wider(id_cols=Item,names_from=Threshold,values_from=threshold)%>%
+      dplyr::mutate(boundary=paste0('t',.data$boundary))%>%
+      dplyr::select(-.data$Threshold)%>%dplyr::rename(Threshold=.data$boundary)%>%
+      tidyr::pivot_wider(id_cols=.data$Item,
+                         names_from=.data$Threshold,
+                         values_from=.data$threshold)%>%
       as.data.frame
     rownames(se.tau.raw)=se.tau.raw$Item
-    se.tau.raw=se.tau.raw%>%dplyr::select(-Item)%>%as.matrix
+    se.tau.raw=se.tau.raw%>%dplyr::select(-.data$Item)%>%as.matrix
   } else {
     se.lambda.raw=NULL
     se.tau.raw=NULL

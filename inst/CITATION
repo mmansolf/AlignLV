@@ -1,7 +1,7 @@
 citHeader("To cite AlignLV in publications use the following:")
 
-citEntry(
-  entry    = "Article",
+bibentry(
+  bibtype    = "Article",
   title    = "Measurement bias in caregiver-report of early childhood behavior problems across demographic factors in an ECHO-wide diverse sample",
   author   = "Shuting Zheng, Maxwell Mansolf, Monica McGrath, Marie L. Churchill, Traci A. Bekelman, Patricia A. Brennan, Amy E. Margolis, Sara S. Nozadi, Theresa M. Bastain, Amy J. Elliott, Kaja Z. LeWinn, Julie A. Hofheimer, Leslie D. Leve, Brandon Rennie, Emily Zimmerman, Carmen A. Marable, Cindy T. McEvoy, Chang Liu, Alexis Sullivan, Tracey J. Woodruff, Samiran Ghosh, Bennett Leventhal, Assiamira Ferrara, Johnnye Lewis, Somer Bishop, on behalf of program collaborators for Environmental influences on Child Health Outcomes",
   journal  = "JCPP Advances",
@@ -9,14 +9,11 @@ citEntry(
   volume   = 4,
   number   = 1,
   pages    = 'Online Only',
-  url      = 'https://doi.org/10.1002/jcv2.12198',
-  textVersion = paste(
-
-  )
+  doi      = 'https://doi.org/10.1002/jcv2.12198'
 )
 
-citEntry(
-  entry    = "Article",
+bibentry(
+  bibtype    = "Article",
   title    = "Measurement bias in caregiver-report of early childhood behavior problems across demographic factors in an ECHO-wide diverse sample",
   author   = "Maxwell Mansolf, Annabel Vreeker, Steven P. Reise, Nelson B. Freimer, David C. Glahn, Raquel E. Gur, Tyler M. Moore, Carlos N. Pato, Michele T. Pato, Aarno Palotie, Minna Holm, Jaana Suvisaari, Timo Partonen, Tuula Kieseppä, Tiina Paunio, Marco Boks, René Kahn, Roel A. Ophoff, Carrie E. Bearden, Loes Olde Loohous, Terri Teshiba, Daniella deGeorge, Robert M. Bilder, on behalf of program collaborators for the WGSPD Consortium",
   journal  = "Educational and Psychological Measurement",
@@ -24,8 +21,5 @@ citEntry(
   volume   = 80,
   number   = 5,
   pages    = '870-909',
-  url      = 'https://doi.org/10.1177/0013164419897307',
-  textVersion = paste(
-
-  )
+  doi      = 'https://doi.org/10.1177/0013164419897307'
 )

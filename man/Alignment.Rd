@@ -34,9 +34,7 @@ been fitted with standard errors estimated (\code{SE=TRUE}).}
 
 \item{eps.alignment}{A numeric scalar for the alignment simplicity function,
 given by (Asparouhov & Muthén, 2014, \emph{Structural Equation Modeling}):
-
 \deqn{\sqrt{\sqrt{x^2+\epsilon}}}
-
 where $x$ is the difference between corresponding estimates in each pair of
 aligned models. Lower values may cause numerical instability; default 0.01}
 
@@ -76,7 +74,37 @@ Performs alignment (\url{https://www.statmodel.com/Alignment.shtml}) using
 single-group models estimated in mirt or lavaan.
 }
 \details{
+Currently, no automated process provides statistical tests for DIF.
+Instead, I recommend interpreting the DIF impact directly by comparing
+scores obtained from a single-group model combining all groups, and the
+multiple models produced by \code{Alignment}. If standard errors
+are requested from \code{\link{getEstimates.mirt}}, or
+\code{\link{getEstimates.lavaan}}, and then the corresponding
+\code{\link{transformEstimates.mirt.grm}} or
+\code{\link{transformEstimates.lavaan.ordered}} is applied, SE's after
+alignment can be
+obtained and used for multiple comparison testing, but this is not yet
+automated. Alternatively, consider re-fitting models with means and
+variances fixed to those obtained from alignment to obtain these standard
+errors. In the latter case, especially when priors are used as in
+\code{mirt}, your estimates may not match those from \code{Alignment}
+exactly.
 
+For \code{lavaan}, the metric for alignment must be the "theta"
+parameterization, which is not the default, in order to properly search for
+latent means and variances, because only then do the transformations apply.
+My current thinking: under the delta parameterization, the transformed
+estimates (calculate delta, incorporate it into parameters, then
+transform parameters, BUT don't reverse the delta transformation) do NOT
+yield an equivalent model, but DO yield a model that can be compared
+across groups. In order to get an equivalent model, you also need to
+reverse the delta transformation at the end. To account for this, if
+the the extra argument toCompare should be turned on \code{TRUE} if
+transformed parameters are to be compared for equivalence across groups.
+Turning it off results in NOT applying the reverse of the delta
+transformation at the end. This currently is fixed to TRUE and cannot
+be modified, but you can access \code{\link{transformEstimates.lavaan.ordered}}
+directly if you want to play around.
 }
 \examples{
 #load data
