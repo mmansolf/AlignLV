@@ -4,10 +4,18 @@
 \alias{getEstimates.mirt}
 \title{Prepare \code{mirt} estimates for alignment}
 \usage{
-getEstimates.mirt(fit, SE = FALSE, bifactor.marginal = F)
+getEstimates.mirt(fit, SE = FALSE, bifactor.marginal = FALSE)
+}
+\arguments{
+\item{fit}{A \code{mirt} object compatible with \code{\link{Alignment}}}
+
+\item{SE}{logical; whether to also obtain standard errors.}
+
+\item{bifactor.marginal}{See \code{\link{Alignment}} documentation.}
 }
 \description{
-Not generally intended to be used on its own, but exported anyway for didactic purposes.
+Not generally intended to be used on its own, but exported anyway for
+didactic purposes.
 }
 \details{
 See example for \code{\link{Alignment}} for examples

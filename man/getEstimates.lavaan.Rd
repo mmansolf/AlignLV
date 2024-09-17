@@ -6,6 +6,11 @@
 \usage{
 getEstimates.lavaan(fit, SE = TRUE)
 }
+\arguments{
+\item{fit}{A \code{lavaan} object compatible with \code{\link{Alignment}}}
+
+\item{SE}{logical; whether to also obtain standard errors.}
+}
 \description{
 Not generally intended to be used on its own, but exported anyway for didactic purposes.
 }

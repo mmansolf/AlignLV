@@ -12,6 +12,17 @@ loadEstimates.lavaan.ordered(
   do.fit = T
 )
 }
+\arguments{
+\item{fit}{A \code{mirt} object compatible with \code{\link{Alignment}}}
+
+\item{align.mean}{Mean to transform model to.}
+
+\item{align.variance}{Variance to transform model to.}
+
+\item{newpars}{New (transformed) estimates to load into model object.}
+
+\item{do.fit}{Whether to re-fit the model after loading and fixing estimates.}
+}
 \description{
 Not generally intended to be used on its own, but exported anyway for
 didactic purposes.

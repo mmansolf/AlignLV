@@ -9,8 +9,18 @@ transformEstimates.lavaan.ordered(
   align.mean,
   align.variance,
   est,
-  toCompare = NULL
+  toCompare = F
 )
+}
+\arguments{
+\item{align.mean}{Mean to transform model to.}
+
+\item{align.variance}{Variance to transform model to.}
+
+\item{est}{Estimates to transform, from \code{\link{getEstimates.lavaan}}}
+
+\item{toCompare}{Accounts for discrepancies between delta and theta
+parameterizations; see \code{\link{Alignment}} documentation.}
 }
 \description{
 Not generally intended to be used on its own, but exported anyway for

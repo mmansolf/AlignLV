@@ -16,6 +16,27 @@ SF.mplus3D(
   otherHyper = NULL
 )
 }
+\arguments{
+\item{pars}{Hyperparameters to feed into optimizer}
+
+\item{est}{Estimates to transform, from \code{\link{getEstimates.mirt}} or
+\code{\link{getEstimates.lavaan}}}
+
+\item{comb}{All combinations of groups from \code{\link[utils]{combn}}}
+
+\item{nobs}{Sample size in each group}
+
+\item{estimator}{See \code{\link{Alignment}} documentation.}
+
+\item{eps.alignment}{See \code{\link{Alignment}} documentation.}
+
+\item{clf.ignore.quantile}{See \code{\link{Alignment}} documentation.}
+
+\item{hyper}{Hyperparameter to calculate simplicity function for; see
+\code{\link{Alignment}} documentation.}
+
+\item{otherHyper}{Non-included hyperparameter}
+}
 \description{
 Not generally intended to be used on its own, but exported anyway for
 didactic purposes.

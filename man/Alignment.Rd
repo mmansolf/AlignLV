@@ -7,11 +7,13 @@
 Alignment(
   fitList,
   estimator,
+  SE = FALSE,
   eps.alignment = 0.01,
   clf.ignore.quantile = 0.1,
   bifactor.marginal = FALSE,
   hyper.first = "variances",
   center.means = TRUE,
+  nstarts = 10,
   ncores = 1
 )
 }
@@ -20,10 +22,15 @@ Alignment(
 for single-group, unidimensional or bifactor models with no covariates
 estimated in \code{mirt} or \code{lavaan}.}
 
-\item{estimator}{The model type used, either \code{mirt.grm} for the graded
-response model estimated in \code{mirt} or \code{lavaan.ordered} for the
+\item{estimator}{The model type used, either \code{'mirt.grm'} for the graded
+response model estimated in \code{mirt} or \code{'lavaan.ordered'} for the
 categorical factor analysis model applied by \code{lavaan} when the
 \code{ordered} input includes all variables in the model.}
+
+\item{SE}{Whether to also return standard errors from parameter estimates
+after alignment. SE's are transformed using the delta method from those
+provided in the original model objects, which must (for \code{mirt}), have
+been fitted with standard errors estimated (\code{SE=TRUE}).}
 
 \item{eps.alignment}{A numeric scalar for the alignment simplicity function,
 given by (Asparouhov & Muthén, 2014, \emph{Structural Equation Modeling}):
@@ -51,10 +58,12 @@ estimates from the first step. \code{'means'} does the reverse.}
 \item{center.means}{A logical scalar. Alignment fixes the first group's mean
 to zero to estimate the others. If \code{center.means} is \code{TRUE}
 (default), aligned means and models are returned after subtracting the
-weighted mean \code{stats::weighted.mean()} from all mean estimates, yielding
+weighted mean \code{\link[stats]{weighted.mean}} from all mean estimates, yielding
 a (weighted) grand mean of zero. Variances are automatically rescaled such
 that their weighted product (i.e., log of weighted mean of
 \code{e^(variance)}) is 1.}
+
+\item{nstarts}{Number of starting values for alignment; default is 10}
 
 \item{ncores}{Number of processor cores to distribute alignment starts
 across; on systems that support multicore processing, using additional cores
@@ -65,6 +74,9 @@ package and defaults to parallel processing if not installed.}
 \description{
 Performs alignment (\url{https://www.statmodel.com/Alignment.shtml}) using
 single-group models estimated in mirt or lavaan.
+}
+\details{
+
 }
 \examples{
 #load data
@@ -95,7 +107,7 @@ newMean=10
 newVar=2
 test.mirt=transformEstimates.mirt.grm(newMean,newVar,est.mirt)
 test.lavaan=transformEstimates.lavaan.ordered(
-              newMean,newVar,est.lavaan,toCompare=FALSE)
+              newMean,newVar,est.lavaan,toCompare=TRUE)
 #load and test equivalence
 tfit.mirt=loadEstimates.mirt.grm(fit.mirt,newMean,newVar,newpars=test.mirt)
 test.mirt=mirt::coef(fit.mirt)
@@ -145,7 +157,7 @@ align.stack=align.optim(stackEstimates(est.base),c(100,200),nstarts=3,
                         eps.alignment=0.01,clf.ignore.quantile=0.1,
                         estimator='lavaan.ordered',center.means=FALSE)
 align.stack
-fit.align=Alignment(fit.base,'lavaan.ordered',center.means=FALSE)
+fit.align=Alignment(fit.base,'lavaan.ordered',center.means=FALSE,SE=TRUE)
 
 #mirt
 fit.base2=list()
@@ -163,7 +175,7 @@ align.stack2=align.optim(stackEstimates(est.base2),c(100,200),nstarts=3,
                          eps.alignment=0.01,clf.ignore.quantile=0.1,
                          estimator='mirt.grm',center.means=FALSE)
 align.stack2
-fit.align2=Alignment(fit.base2,'mirt.grm',center.means=FALSE)
+fit.align2=Alignment(fit.base2,'mirt.grm',center.means=FALSE,SE=TRUE)
 
 #did it work?
 fit.align$hypers

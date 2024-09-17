@@ -3,13 +3,49 @@
 #' Performs alignment (\url{https://www.statmodel.com/Alignment.shtml}) using
 #' single-group models estimated in mirt or lavaan.
 #'
+#' Two notes:
+#' \enumerate{
+#'   \item Currently, no automated process provides statistical tests for DIF.
+#'   Instead, I recommend interpreting the DIF impact directly by comparing
+#'   scores obtained from a single-group model combining all groups, and the
+#'   multiple models produced by \code{Alignment}. If standard errors
+#'   are requested from \code{\link{getEstimates.mirt}}, or
+#'   \code{\link{getEstimates.lavaan}}, and then the corresponding
+#'   \code{\link{transformEstimates}} is applied, SE's after alignment can be
+#'   obtained and used for multiple comparison testing, but this is not yet
+#'   automated. Alternatively, consider re-fitting models with means and
+#'   variances fixed to those obtained from alignment to obtain these standard
+#'   errors. In the latter case, especially when priors are used as in
+#'   \code{mirt}, your estimates may not match those from \code{Alignment}
+#'   exactly.
+#'   \item For \code{lavaan}, the metric for alignment must be the "theta"
+#'   parameterization, which is not the default, in order to properly search for
+#'   latent means and variances, because only then do the transformations apply.
+#'   My current thinking: under the delta parameterization, the transformed
+#'   estimates (calculate delta, incorporate it into parameters, then
+#'   transform parameters, BUT don't reverse the delta transformation) do NOT
+#'   yield an equivalent model, but DO yield a model that can be compared
+#'   across groups. In order to get an equivalent model, you also need to
+#'   reverse the delta transformation at the end. To account for this, if
+#'   the the extra argument toCompare should be turned on \code{TRUE} if
+#'   transformed parameters are to be compared for equivalence across groups.
+#'   Turning it off results in NOT applying the reverse of the delta
+#'   transformation at the end. This currently is fixed to TRUE and cannot
+#'   be modified, but you can access \code{\link{transformEstimates.lavaan.ordered}}
+#'   directly if you want to play around.
+#' \end{enumerate}
+#'
 #' @param fitList A \code{list} of fitted model objects. Currently only works
 #' for single-group, unidimensional or bifactor models with no covariates
 #' estimated in \code{mirt} or \code{lavaan}.
-#' @param estimator The model type used, either \code{mirt.grm} for the graded
-#' response model estimated in \code{mirt} or \code{lavaan.ordered} for the
+#' @param estimator The model type used, either \code{'mirt.grm'} for the graded
+#' response model estimated in \code{mirt} or \code{'lavaan.ordered'} for the
 #' categorical factor analysis model applied by \code{lavaan} when the
 #' \code{ordered} input includes all variables in the model.
+#' @param SE Whether to also return standard errors from parameter estimates
+#' after alignment. SE's are transformed using the delta method from those
+#' provided in the original model objects, which must (for \code{mirt}), have
+#' been fitted with standard errors estimated (\code{SE=TRUE}).
 #' @param eps.alignment A numeric scalar for the alignment simplicity function,
 #' given by (Asparouhov & Muthén, 2014, \emph{Structural Equation Modeling}):
 #'
@@ -32,10 +68,11 @@
 #' @param center.means A logical scalar. Alignment fixes the first group's mean
 #' to zero to estimate the others. If \code{center.means} is \code{TRUE}
 #' (default), aligned means and models are returned after subtracting the
-#' weighted mean \code{stats::weighted.mean()} from all mean estimates, yielding
+#' weighted mean \code{\link[stats]{weighted.mean}} from all mean estimates, yielding
 #' a (weighted) grand mean of zero. Variances are automatically rescaled such
 #' that their weighted product (i.e., log of weighted mean of
 #' \code{e^(variance)}) is 1.
+#' @param nstarts Number of starting values for alignment; default is 10
 #' @param ncores Number of processor cores to distribute alignment starts
 #' across; on systems that support multicore processing, using additional cores
 #' can speed up the alignment step by roughly a factor of the number of cores.
@@ -73,7 +110,7 @@
 #' newVar=2
 #' test.mirt=transformEstimates.mirt.grm(newMean,newVar,est.mirt)
 #' test.lavaan=transformEstimates.lavaan.ordered(
-#'               newMean,newVar,est.lavaan,toCompare=FALSE)
+#'               newMean,newVar,est.lavaan,toCompare=TRUE)
 #' #load and test equivalence
 #' tfit.mirt=loadEstimates.mirt.grm(fit.mirt,newMean,newVar,newpars=test.mirt)
 #' test.mirt=mirt::coef(fit.mirt)
@@ -123,7 +160,7 @@
 #'                         eps.alignment=0.01,clf.ignore.quantile=0.1,
 #'                         estimator='lavaan.ordered',center.means=FALSE)
 #' align.stack
-#' fit.align=Alignment(fit.base,'lavaan.ordered',center.means=FALSE)
+#' fit.align=Alignment(fit.base,'lavaan.ordered',center.means=FALSE,SE=TRUE)
 #'
 #' #mirt
 #' fit.base2=list()
@@ -141,7 +178,7 @@
 #'                          eps.alignment=0.01,clf.ignore.quantile=0.1,
 #'                          estimator='mirt.grm',center.means=FALSE)
 #' align.stack2
-#' fit.align2=Alignment(fit.base2,'mirt.grm',center.means=FALSE)
+#' fit.align2=Alignment(fit.base2,'mirt.grm',center.means=FALSE,SE=TRUE)
 #'
 #' #did it work?
 #' fit.align$hypers
@@ -156,50 +193,50 @@
 #'     purrr::transpose())[paste0('Item_',1:3)]%>%purrr::map(~mean(.[[1]]-.[[2]]))
 #' #appears so!
 #'
-Alignment=function(fitList,estimator,
+Alignment=function(fitList,estimator,SE=FALSE,
                    eps.alignment=0.01,clf.ignore.quantile=0.1,
                    bifactor.marginal=FALSE,
                    hyper.first='variances',center.means=TRUE,
-                   ncores=1){
+                   nstarts=10,ncores=1){
   if(estimator=='mirt.grm'){
     #get all estimates
-    est=fitList%>%purrr::map(getEstimates.mirt,SE=FALSE,
-                      bifactor.marginal=bifactor.marginal)
+    est=fitList%>%purrr::map(getEstimates.mirt,SE=SE,
+                             bifactor.marginal=bifactor.marginal)
     #align
     means.vars.parout=align.optim(est%>%stackEstimates,
-                           n=fitList%>%purrr::map_dbl(~.@Data$N),
-                           estimator=estimator,
-                           eps.alignment=eps.alignment,
-                           clf.ignore.quantile=clf.ignore.quantile,
-                           hyper.first=hyper.first,
-                           center.means=center.means,
-                           ncores=ncores)
+                                  n=fitList%>%purrr::map_dbl(~.@Data$N),
+                                  estimator=estimator,
+                                  eps.alignment=eps.alignment,
+                                  clf.ignore.quantile=clf.ignore.quantile,
+                                  hyper.first=hyper.first,
+                                  center.means=center.means,
+                                  nstarts=nstarts,ncores=ncores)
     means.vars=means.vars.parout$mv
     parout=means.vars.parout$parout
     #get aligned estimates
     test=purrr::map2(est,means.vars,
-              ~transformEstimates.mirt.grm(.y[1],.y[2],.x))
+                     ~transformEstimates.mirt.grm(.y[1],.y[2],.x))
     #fitted, aligned models
     tfit=list(fitList,test,means.vars)%>%purrr::pmap(
       function(x,y,z)loadEstimates.mirt.grm(x,z[1],z[2],y,do.fit=TRUE))
   } else if(estimator=='lavaan.ordered'){
     #get all estimates
-    est=fitList%>%purrr::map(getEstimates.lavaan,SE=TRUE)
+    est=fitList%>%purrr::map(getEstimates.lavaan,SE=SE)
     #align
     means.vars.parout=align.optim(est%>%stackEstimates,
-                           n=fitList%>%purrr::map_dbl(~.@Data@nobs[[1]]),
-                           estimator=estimator,
-                           eps.alignment=eps.alignment,
-                           clf.ignore.quantile=clf.ignore.quantile,
-                           hyper.first=hyper.first,
-                           center.means=center.means,
-                           ncores=ncores)
+                                  n=fitList%>%purrr::map_dbl(~.@Data@nobs[[1]]),
+                                  estimator=estimator,
+                                  eps.alignment=eps.alignment,
+                                  clf.ignore.quantile=clf.ignore.quantile,
+                                  hyper.first=hyper.first,
+                                  center.means=center.means,
+                                  nstarts=nstarts,ncores=ncores)
     means.vars=means.vars.parout$mv
     parout=means.vars.parout$parout
     #get aligned estimates
     test=purrr::map2(est,means.vars
-              ,~transformEstimates.lavaan.ordered(.y[1],.y[2],.x,
-                                                  toCompare=FALSE))
+                     ,~transformEstimates.lavaan.ordered(.y[1],.y[2],.x,
+                                                         toCompare=T))
     #fitted, aligned models
     tfit=list(fitList,test,means.vars)%>%purrr::pmap(
       function(x,y,z)loadEstimates.lavaan.ordered(x,z[1],z[2],y,do.fit=TRUE))

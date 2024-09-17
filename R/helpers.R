@@ -7,10 +7,12 @@
 #'
 #' This may differ from what is used in Mplus.
 #'
-#' @param fit An object of class \code{mirt}, compatible with \code{Alignment()}
+#' @param fit A \code{mirt} object compatible with \code{\link{Alignment}}
+#' @param SE logical; whether to also obtain standard errors.
+#' @param bifactor.marginal See \code{\link{Alignment}} documentation.
 #'
 #' @export
-getEstimates.mirt=function(fit,SE=FALSE,bifactor.marginal=F){
+getEstimates.mirt=function(fit,SE=FALSE,bifactor.marginal=FALSE){
 
   #coefficients
   coef.raw=mirt::coef(fit,printSE=SE)
@@ -171,6 +173,9 @@ getEstimates.mirt=function(fit,SE=FALSE,bifactor.marginal=F){
 #'
 #' This may differ from what is used in Mplus.
 #'
+#' @param fit A \code{lavaan} object compatible with \code{\link{Alignment}}
+#' @param SE logical; whether to also obtain standard errors.
+#'
 #' @export
 getEstimates.lavaan=function(fit,SE=TRUE){
 
@@ -241,6 +246,10 @@ getEstimates.lavaan=function(fit,SE=TRUE){
 #'
 #' This may differ from what is used in Mplus.
 #'
+#' @param align.mean Mean to transform model to.
+#' @param align.variance Variance to transform model to.
+#' @param est Estimates to transform, from \code{\link{getEstimates.mirt}}
+#'
 #' @export
 transformEstimates.mirt.grm=function(align.mean,align.variance,est){
   #unpack est
@@ -291,10 +300,16 @@ transformEstimates.mirt.grm=function(align.mean,align.variance,est){
 #'
 #' This may differ from what is used in Mplus.
 #'
+#' @param align.mean Mean to transform model to.
+#' @param align.variance Variance to transform model to.
+#' @param est Estimates to transform, from \code{\link{getEstimates.lavaan}}
+#' @param toCompare Accounts for discrepancies between delta and theta
+#' parameterizations; see \code{\link{Alignment}} documentation.
+#'
 #' @export
 transformEstimates.lavaan.ordered=function(align.mean,
                                            align.variance,
-                                           est,toCompare=NULL){
+                                           est,toCompare=F){
   #My current thinking: under the delta parameterization, the transformed
   #estimates (calculate delta, incorporate it into parameters, then
   #transform parameters, BUT don't reverse the delta transformation) do NOT
@@ -326,7 +341,7 @@ transformEstimates.lavaan.ordered=function(align.mean,
                  aperm(c(2,3,1)))*
         (array(lambda,dim(tau)[c(1,3,2)])%>%
            aperm(c(1,3,2)))
-    } else if(all(est$parameterization=='delta') & !is.null(toCompare)){
+    } else if(all(est$parameterization=='delta') & toCompare){
       #get deltas
       delta=sqrt(1-lambda^2)
       #convert to theta parameterization
@@ -363,7 +378,7 @@ transformEstimates.lavaan.ordered=function(align.mean,
       tau=tau+align.mean*matrix(lambda,
                                 nrow(tau),
                                 ncol(tau),byrow=F)
-    } else if(est$parameterization=='delta' & !is.null(toCompare)){
+    } else if(est$parameterization=='delta' & toCompare){
       #get deltas
       delta=sqrt(1-lambda^2)
       #convert to theta parameterization
@@ -401,6 +416,12 @@ transformEstimates.lavaan.ordered=function(align.mean,
 #' See example for \code{\link{Alignment}} for examples
 #'
 #' This may differ from what is used in Mplus.
+#'
+#' @param fit A \code{mirt} object compatible with \code{\link{Alignment}}
+#' @param align.mean Mean to transform model to.
+#' @param align.variance Variance to transform model to.
+#' @param newpars New (transformed) estimates to load into model object.
+#' @param do.fit Whether to re-fit the model after loading and fixing estimates.
 #'
 #' @export
 loadEstimates.mirt.grm=function(fit,align.mean,align.variance,newpars,do.fit=T){
@@ -469,6 +490,12 @@ loadEstimates.mirt.grm=function(fit,align.mean,align.variance,newpars,do.fit=T){
 #'
 #' This may differ from what is used in Mplus.
 #'
+#' @param fit A \code{mirt} object compatible with \code{\link{Alignment}}
+#' @param align.mean Mean to transform model to.
+#' @param align.variance Variance to transform model to.
+#' @param newpars New (transformed) estimates to load into model object.
+#' @param do.fit Whether to re-fit the model after loading and fixing estimates.
+#'
 #' @export
 loadEstimates.lavaan.ordered=function(fit,align.mean,align.variance,
                                       newpars,do.fit=T){
@@ -513,6 +540,9 @@ loadEstimates.lavaan.ordered=function(fit,align.mean,align.variance,
 #' See example for \code{\link{Alignment}} for examples
 #'
 #' This may differ from what is used in Mplus.
+#'
+#' @param estList List of estimates from \code{\link{getEstimates.lavaan}} or
+#' \code{\link{getEstimates.mirt}} to stack to feed into \code{\link{SF.mplus3D}}
 #'
 #' @export
 stackEstimates=function(estList){
@@ -600,6 +630,18 @@ W=function(x,y) return(sqrt(x*y))
 #'
 #' This may differ from what is used in Mplus.
 #'
+#' @param pars Hyperparameters to feed into optimizer
+#' @param est Estimates to transform, from \code{\link{getEstimates.mirt}} or
+#' \code{\link{getEstimates.lavaan}}
+#' @param comb All combinations of groups from \code{\link[utils]{combn}}
+#' @param nobs Sample size in each group
+#' @param estimator See \code{\link{Alignment}} documentation.
+#' @param eps.alignment See \code{\link{Alignment}} documentation.
+#' @param clf.ignore.quantile See \code{\link{Alignment}} documentation.
+#' @param hyper Hyperparameter to calculate simplicity function for; see
+#' \code{\link{Alignment}} documentation.
+#' @param otherHyper Non-included hyperparameter
+#'
 #' @export
 SF.mplus3D=function(pars,est,comb,nobs,estimator,
                     eps.alignment,clf.ignore.quantile,
@@ -661,6 +703,16 @@ fact.mirt=factory(mirt::mirt)
 #' for didactic purposes.
 #'
 #' See example for \code{\link{Alignment}} for examples
+#'
+#' @param stacked Stacked parameter estimates from \code{\link{stackEstimates}}
+#' @param n Sample size in each group
+#' @param estimator See \code{\link{Alignment}} documentation.
+#' @param nstarts Number of starting values for alignment; default is 10
+#' @param ncores See \code{\link{Alignment}} documentation.
+#' @param hyper.first See \code{\link{Alignment}} documentation.
+#' @param center.means See \code{\link{Alignment}} documentation.
+#' @param eps.alignment See \code{\link{Alignment}} documentation.
+#' @param clf.ignore.quantile See \code{\link{Alignment}} documentation.
 #'
 #' @export
 align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,
@@ -868,6 +920,6 @@ Increase starting values or add more common items across groups.')
                      as.list(align.means),
                      as.list(align.variances),SIMPLIFY=FALSE),
            parout=parout,nFailedRuns=nFailedRuns)
-  print(out)
+  # print(out)
   return(out)
 }

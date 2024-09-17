@@ -16,6 +16,25 @@ align.optim(
   clf.ignore.quantile
 )
 }
+\arguments{
+\item{stacked}{Stacked parameter estimates from \code{\link{stackEstimates}}}
+
+\item{n}{Sample size in each group}
+
+\item{estimator}{See \code{\link{Alignment}} documentation.}
+
+\item{nstarts}{Number of starting values for alignment; default is 10}
+
+\item{ncores}{See \code{\link{Alignment}} documentation.}
+
+\item{hyper.first}{See \code{\link{Alignment}} documentation.}
+
+\item{center.means}{See \code{\link{Alignment}} documentation.}
+
+\item{eps.alignment}{See \code{\link{Alignment}} documentation.}
+
+\item{clf.ignore.quantile}{See \code{\link{Alignment}} documentation.}
+}
 \description{
 Not generally intended to be used on its own, but exported anyway
 for didactic purposes.

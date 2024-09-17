@@ -7,6 +7,13 @@ and variance}
 \usage{
 transformEstimates.mirt.grm(align.mean, align.variance, est)
 }
+\arguments{
+\item{align.mean}{Mean to transform model to.}
+
+\item{align.variance}{Variance to transform model to.}
+
+\item{est}{Estimates to transform, from \code{\link{getEstimates.mirt}}}
+}
 \description{
 Not generally intended to be used on its own, but exported anyway for
 didactic purposes.
