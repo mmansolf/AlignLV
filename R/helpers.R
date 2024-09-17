@@ -1,10 +1,13 @@
 #' Prepare \code{mirt} estimates for alignment
 #'
-#' Not generally intended to be used on its own, but exported anyway for didactic purposes.
+#' Not generally intended to be used on its own, but exported anyway for
+#' didactic purposes.
 #'
 #' See example for \code{\link{Alignment}} for examples
 #'
 #' This may differ from what is used in Mplus.
+#'
+#' @param fit An object of class \code{mirt}, compatible with \code{Alignment()}
 #'
 #' @export
 getEstimates.mirt=function(fit,SE=FALSE,bifactor.marginal=F){
@@ -189,7 +192,7 @@ getEstimates.lavaan=function(fit,SE=TRUE){
     purrr::map(~tibble::tibble(Threshold=as.character(1:length(.)),
                 boundary=.))%>%
     stats::setNames(fit@Data@ov$name)%>%
-    purrr::imap(~dplyr::mutate(.x,Item=.y))%>%dplyr::bind_rows
+    purrr::imap(~dplyr::mutate(.x,Item=.y))%>%dplyr::bind_rows()
   tau.raw=tau.raw%>%
     dplyr::mutate(Threshold=gsub('t','',Threshold,fixed=T))%>%
     dplyr::left_join(obs.thresh,by=c('Item','Threshold'))%>%
@@ -414,8 +417,8 @@ loadEstimates.mirt.grm=function(fit,align.mean,align.variance,newpars,do.fit=T){
   call=call.split%>%purrr::map_chr(paste,collapse=',')%>%paste(collapse='=')
   #run it again with pars='values'
   call.pars=paste0(substr(call,1,nchar(call)-1),
-                   ", pars = 'values')")%>%
-    gsub('pars = pars,','',.,fixed=T)
+                   ", pars = 'values')")
+  call.pars=gsub('pars = pars,','',call.pars,fixed=T)
   #bring in mod from @Model$model if model = mod is contained in call.pars
   if(!grepl('model = 1',call.pars,fixed=T)){
     modName=strsplit(call.pars,'model = ',fixed=T)[[1]][2]%>%
@@ -471,7 +474,7 @@ loadEstimates.lavaan.ordered=function(fit,align.mean,align.variance,
                                       newpars,do.fit=T){
   #get data and partable
   dat=fit@Data
-  pt=fit@ParTable%>%tibble::as_tibble
+  pt=fit@ParTable%>%tibble::as_tibble()
   #lv name
   fname=pt$lhs[pt$op=='=~']%>%unique
 
@@ -689,7 +692,8 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,
       parmx=foreach::foreach(k = 1:nstarts,.export=c("W","SF.mplus3D",
                                             "CLF",'eps.alignment',
                                             paste0('transformEstimates.',
-                                                   estimator)),
+                                                   estimator),
+                                            'clf.ignore.quantile'),
                     .packages=c("abind",'purrr','dplyr','tibble')) %dopar% {
                       set.seed(k)
                       if(hyper.first=='means'){
@@ -766,6 +770,7 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,
                      fn=SF.mplus3D,method="L-BFGS-B",
                      est=stacked,comb=comb,nobs=n,estimator=estimator,
                      eps.alignment=eps.alignment,
+                     clf.ignore.quantile=clf.ignore.quantile,
                      hyper='means',otherHyper=rep(1,ngroups-1),
                      control=list(maxit=10000,trace=0),
                      lower=rep(-Inf,ngroups-1))
@@ -773,6 +778,7 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,
                      fn=SF.mplus3D,method="L-BFGS-B",
                      est=stacked,comb=comb,nobs=n,estimator=estimator,
                      eps.alignment=eps.alignment,
+                     clf.ignore.quantile=clf.ignore.quantile,
                      hyper='variances',otherHyper=outM$par,
                      control=list(maxit=10000,trace=0),
                      lower=rep(1e-6,ngroups-1))
@@ -784,6 +790,7 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,
                      fn=SF.mplus3D,method="L-BFGS-B",
                      est=stacked,comb=comb,nobs=n,estimator=estimator,
                      eps.alignment=eps.alignment,
+                     clf.ignore.quantile=clf.ignore.quantile,
                      hyper='variances',otherHyper=rep(0,ngroups-1),
                      control=list(maxit=10000,trace=0),
                      lower=rep(1e-6,ngroups-1))
@@ -791,6 +798,7 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,
                      fn=SF.mplus3D,method="L-BFGS-B",
                      est=stacked,comb=comb,nobs=n,estimator=estimator,
                      eps.alignment=eps.alignment,
+                     clf.ignore.quantile=clf.ignore.quantile,
                      hyper='means',otherHyper=outV$par,
                      control=list(maxit=10000,trace=0),
                      lower=rep(-Inf,ngroups-1))
@@ -802,6 +810,7 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,
                     fn=SF.mplus3D,method="L-BFGS-B",
                     est=stacked,comb=comb,nobs=n,estimator=estimator,
                     eps.alignment=eps.alignment,hyper='all',
+                    clf.ignore.quantile=clf.ignore.quantile,
                     control=list(maxit=10000,trace=0),
                     lower=c(rep(-Inf,ngroups-1),rep(1e-6,ngroups-1)))
           parmx[[k]]=c(value=out$value,convergence=out$convergence,par=out$par)
@@ -810,7 +819,7 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,
     }
     print('Alignment done!')
     print(proc.time()-pct)
-    parout=parmx%>%stats::setNames(1:nstarts)%>%dplyr::bind_cols%>%t
+    parout=parmx%>%stats::setNames(1:nstarts)%>%dplyr::bind_cols()%>%t()
 
     #reject runs that failed
     failedruns=which(parout[,2]!=0)
@@ -828,7 +837,7 @@ Increase starting values or add more common items across groups.')
 
     #populate
     #this line takes the lowest objective function value
-    align.hyperpars=parout[order(parout[,1],decreasing=F)[1],-c(1,2)]
+    align.hyperpars=parout[order(parout[,1],decreasing=FALSE)[1],-c(1,2)]
     align.means=align.hyperpars[1:(ngroups-1)]
     align.variances=align.hyperpars[((ngroups-1)+1):((ngroups-1)*2)]
     #populate means, centering at zero to start
@@ -857,7 +866,7 @@ Increase starting values or add more common items across groups.')
   #return means and variances, plus parout
   out=list(mv=mapply(function(x,y)c(mean=x,var=y),
                      as.list(align.means),
-                     as.list(align.variances),SIMPLIFY=F),
+                     as.list(align.variances),SIMPLIFY=FALSE),
            parout=parout,nFailedRuns=nFailedRuns)
   print(out)
   return(out)

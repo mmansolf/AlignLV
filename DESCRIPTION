@@ -11,10 +11,8 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
 Imports: 
     abind,
-    car,
     mirt,
     lavaan,
-    tidyverse,
     magrittr,
     purrr,
     stats,

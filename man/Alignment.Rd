@@ -79,7 +79,7 @@ fit.mirt=mirt(dat,1,SE=TRUE)
 fit.lavaan=cfa(model='G =~ Item.1+Item.2+Item.3',data=dat,
                ordered=c('Item.1','Item.2','Item.3'),
                std.lv=TRUE,parameterization='delta')
-fit.lavaan@ParTable\%>\%tibble::as_tibble()\%>\%print(n=Inf)
+(fit.lavaan@ParTable)\%>\%tibble::as_tibble()\%>\%print(n=Inf)
 #test stuff
 tab=fit.lavaan@ParTable
 tab$start[23]=3
@@ -117,7 +117,9 @@ estList=list(est.mirt\%>\%purrr::imap(function(x,n){
 }))
 stack=stackEstimates(estList)
 test.stack=transformEstimates.mirt.grm(c(0,0),c(1,1),stack)
-sf.stack=SF.mplus3D(c(0,1),stack,combn(1:2,2),c(100,200),'mirt.grm')
+sf.stack=SF.mplus3D(c(0,1),stack,combn(1:2,2),c(100,200),'mirt.grm',
+                                       eps.alignment=0.01,
+                                       clf.ignore.quantile=0.1)
 test.stack2=transformEstimates.mirt.grm(c(0,1),c(1,1/2),stack)
 
 #try align?
@@ -131,10 +133,17 @@ fit.base=sim.base\%>\%purrr::map(~cfa(model="G =~ Item_1 + Item_2 + Item_3",
                              data=as.data.frame(.),
                              ordered=paste0('Item_',1:3),std.lv=TRUE,
                              parameterization='delta'))
-fit.base\%>\%purrr::map(lavInspect,'est')\%>\%purrr::transpose
+fit.base\%>\%purrr::map(lavInspect,'est')\%>\%purrr::transpose()
 est.base=purrr::map(fit.base,getEstimates.lavaan,SE=TRUE)
+#not run: using parallel processes with ncores=3
+# align.stack=align.optim(stackEstimates(est.base),c(100,200),nstarts=3,
+#                         hyper.first='variances',ncores=3,
+#                         eps.alignment=0.01,clf.ignore.quantile=0.1,
+#                         estimator='lavaan.ordered',center.means=FALSE)
 align.stack=align.optim(stackEstimates(est.base),c(100,200),nstarts=3,
-                        ncores=3,estimator='lavaan.ordered',center.means=FALSE)
+                        hyper.first='variances',ncores=1,
+                        eps.alignment=0.01,clf.ignore.quantile=0.1,
+                        estimator='lavaan.ordered',center.means=FALSE)
 align.stack
 fit.align=Alignment(fit.base,'lavaan.ordered',center.means=FALSE)
 
@@ -144,22 +153,29 @@ for(i in 1:length(sim.base)){
   fit.base2[[i]]=mirt(sim.base[[i]],1,'graded',SE=TRUE)
 }
 est.base2=purrr::map(fit.base2,getEstimates.mirt,SE=TRUE,bifactor.marginal=FALSE)
+#not run: using parallel processes with ncores=3
+# align.stack2=align.optim(stackEstimates(est.base2),c(100,200),nstarts=3,
+#                          hyper.first='variances',ncores=3,
+#                          eps.alignment=0.01,clf.ignore.quantile=0.1,
+#                          estimator='mirt.grm',center.means=FALSE)
 align.stack2=align.optim(stackEstimates(est.base2),c(100,200),nstarts=3,
-                         ncores=3,estimator='mirt.grm',center.means=FALSE)
+                         hyper.first='variances',ncores=1,
+                         eps.alignment=0.01,clf.ignore.quantile=0.1,
+                         estimator='mirt.grm',center.means=FALSE)
 align.stack2
 fit.align2=Alignment(fit.base2,'mirt.grm',center.means=FALSE)
 
 #did it work?
 fit.align$hypers
 fit.align2$hypers
-fit.align$est\%>\%purrr::transpose\%>\%purrr::map(~mean(.[[1]]-.[[2]]))
-fit.align2$est\%>\%purrr::transpose\%>\%purrr::map(~mean(.[[1]]-.[[2]]))
+fit.align$est\%>\%purrr::transpose()\%>\%purrr::map(~mean(.[[1]]-.[[2]]))
+fit.align2$est\%>\%purrr::transpose()\%>\%purrr::map(~mean(.[[1]]-.[[2]]))
 fit.align$fit
 fit.align2$fit
-(fit.align$fit\%>\%purrr::map(~.@ParTable\%>\%tibble::as_tibble\%>\%filter(free!=0))\%>\%
-  purrr::transpose)[c('start','est')]\%>\%purrr::map(~mean(.[[1]]-.[[2]]))
+(fit.align$fit\%>\%purrr::map(~.@ParTable\%>\%tibble::as_tibble()\%>\%dplyr::filter(free!=0))\%>\%
+  purrr::transpose())[c('start','est')]\%>\%purrr::map(~mean(.[[1]]-.[[2]]))
 (fit.align2$fit\%>\%purrr::map(coef)\%>\%
-    purrr::transpose)[paste0('Item_',1:3)]\%>\%purrr::map(~mean(.[[1]]-.[[2]]))
+    purrr::transpose())[paste0('Item_',1:3)]\%>\%purrr::map(~mean(.[[1]]-.[[2]]))
 #appears so!
 
 }
