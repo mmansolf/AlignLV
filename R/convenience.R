@@ -219,7 +219,8 @@ Alignment=function(fitList,estimator,SE=FALSE,
                    eps.alignment=0.01,clf.ignore.quantile=0.1,
                    bifactor.marginal=FALSE,
                    hyper.first='variances',center.means=TRUE,
-                   nstarts=10,ncores=1){
+                   nstarts=10,ncores=1,
+                   verbose=T){
   options(warnPartialMatchArgs = FALSE)
   if(estimator=='mirt.grm'){
     #get all estimates
@@ -233,7 +234,8 @@ Alignment=function(fitList,estimator,SE=FALSE,
                                   clf.ignore.quantile=clf.ignore.quantile,
                                   hyper.first=hyper.first,
                                   center.means=center.means,
-                                  nstarts=nstarts,ncores=ncores)
+                                  nstarts=nstarts,ncores=ncores,
+                                  verbose=verbose)
     means.vars=means.vars.parout$mv
     parout=means.vars.parout$parout
     #get aligned estimates
@@ -241,7 +243,8 @@ Alignment=function(fitList,estimator,SE=FALSE,
                      ~transformEstimates.mirt.grm(.y[1],.y[2],.x))
     #fitted, aligned models
     tfit=list(fitList,test,means.vars)%>%purrr::pmap(
-      function(x,y,z)loadEstimates.mirt.grm(x,z[1],z[2],y,do.fit=TRUE))
+      function(x,y,z)loadEstimates.mirt.grm(x,z[1],z[2],y,
+                                            do.fit=TRUE,verbose=verbose))
   } else if(estimator=='lavaan.ordered'){
     #get all estimates
     est=fitList%>%purrr::map(getEstimates.lavaan,SE=SE)
@@ -253,7 +256,8 @@ Alignment=function(fitList,estimator,SE=FALSE,
                                   clf.ignore.quantile=clf.ignore.quantile,
                                   hyper.first=hyper.first,
                                   center.means=center.means,
-                                  nstarts=nstarts,ncores=ncores)
+                                  nstarts=nstarts,ncores=ncores,
+                                  verbose=verbose)
     means.vars=means.vars.parout$mv
     parout=means.vars.parout$parout
     #get aligned estimates
@@ -262,7 +266,8 @@ Alignment=function(fitList,estimator,SE=FALSE,
                                                          toCompare=T))
     #fitted, aligned models
     tfit=list(fitList,test,means.vars)%>%purrr::pmap(
-      function(x,y,z)loadEstimates.lavaan.ordered(x,z[1],z[2],y,do.fit=TRUE))
+      function(x,y,z)loadEstimates.lavaan.ordered(x,z[1],z[2],y,
+                                                  do.fit=TRUE,verbose=verbose))
   }
   names(means.vars)=names(test)
   #return stuff

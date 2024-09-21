@@ -4,7 +4,14 @@
 \alias{loadEstimates.mirt.grm}
 \title{Estimate \code{mirt} models using aligned parameter estimates}
 \usage{
-loadEstimates.mirt.grm(fit, align.mean, align.variance, newpars, do.fit = TRUE)
+loadEstimates.mirt.grm(
+  fit,
+  align.mean,
+  align.variance,
+  newpars,
+  do.fit = TRUE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{fit}{A \code{mirt} object compatible with \code{\link{Alignment}}}

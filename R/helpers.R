@@ -438,7 +438,8 @@ transformEstimates.lavaan.ordered=function(align.mean,
 #'
 #' @export
 loadEstimates.mirt.grm=function(fit,align.mean,
-                                align.variance,newpars,do.fit=TRUE){
+                                align.variance,newpars,
+                                do.fit=TRUE,verbose=TRUE){
 
   #get call
   call=fit@Call%>%deparse
@@ -453,10 +454,12 @@ loadEstimates.mirt.grm=function(fit,align.mean,
   call=call.split%>%purrr::map_chr(paste,collapse=',')%>%paste(collapse='=')
   #run it again with pars='values'
   call.pars=paste0(substr(call,1,nchar(call)-1),
-                   ", pars = 'values')")
+                   ", pars = 'values', verbose = ",verbose,')')
   # call.pars=gsub('pars = pars,','',call.pars,fixed=TRUE)
   #chatgpt gave me this
   call.pars=gsub("pars = ([^,\\)]+)([,\\)])", "pars = \\1\\2", call.pars, perl = TRUE)
+
+  if(verbose) cat(call.pars)
 
   #bring in mod from @Model$model if model = mod is contained in call.pars
   if(!grepl('model = 1',call.pars,fixed=TRUE)){
@@ -498,7 +501,7 @@ loadEstimates.mirt.grm=function(fit,align.mean,
     #add pars, if not there already (?)
     if(!grepl('pars = pars',call,fixed=TRUE)){
       newcall=paste0(substr(call,1,nchar(call)-1),
-                     ", pars = pars)")
+                     ", pars = pars, verbose = ",verbose,')')
       out=eval(parse(text=newcall))
     } else out=eval(parse(text=call))
   } else out=pars
@@ -522,7 +525,7 @@ loadEstimates.mirt.grm=function(fit,align.mean,
 #'
 #' @export
 loadEstimates.lavaan.ordered=function(fit,align.mean,align.variance,
-                                      newpars,do.fit=TRUE){
+                                      newpars,do.fit=TRUE,verbose=TRUE){
 
   #get data and partable
   dat=fit@Data
@@ -552,7 +555,7 @@ loadEstimates.lavaan.ordered=function(fit,align.mean,align.variance,
   pt$est=pt$start
   if(do.fit){
     out=lavaan::lavaan(pt%>%as.list,data=dat,parameterization=
-                 fit@Options$parameterization)
+                 fit@Options$parameterization,verbose=verbose)
   } else out=pt
   out
 }
@@ -727,7 +730,7 @@ SF.mplus3D=function(pars,est,comb,nobs,estimator,
 #' @export
 align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,
                      hyper.first,center.means,eps.alignment,
-                     clf.ignore.quantile){
+                     clf.ignore.quantile,verbose){
 
   #get sample sizes from mirt objects
   ngroups=length(n)
@@ -741,7 +744,7 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,
     ############################################################################
     ############################################################################
 
-    cat("Parameters ready to align, beginning alignment... ")
+    if(verbose)("Parameters ready to align, beginning alignment... ")
 
     #alignment optimization
     parmx=NULL

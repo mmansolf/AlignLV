@@ -13,7 +13,8 @@ align.optim(
   hyper.first,
   center.means,
   eps.alignment,
-  clf.ignore.quantile
+  clf.ignore.quantile,
+  verbose
 )
 }
 \arguments{

@@ -14,7 +14,8 @@ Alignment(
   hyper.first = "variances",
   center.means = TRUE,
   nstarts = 10,
-  ncores = 1
+  ncores = 1,
+  verbose = T
 )
 }
 \arguments{
