@@ -9,7 +9,7 @@ loadEstimates.lavaan.ordered(
   align.mean,
   align.variance,
   newpars,
-  do.fit = T
+  do.fit = TRUE
 )
 }
 \arguments{

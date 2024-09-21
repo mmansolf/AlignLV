@@ -4,9 +4,9 @@
 \name{AlignLV-package}
 \alias{AlignLV}
 \alias{AlignLV-package}
-\title{AlignLV: Multiple Group Item Response Theory Alignment Helpers for Lavaan and Mirt}
+\title{AlignLV: Multiple Group Item Response Theory Alignment Helpers for 'lavaan' and 'mirt'}
 \description{
-Allows for multiple group item response theory alignment a la Mplus to be applied to lists of single-group models estimated in lavaan or mirt. Allows item sets that are overlapping but not identical, facilitating alignment in secondary data analysis where not all items may be shared across assessments.
+Allows for multiple group item response theory alignment a la 'Mplus' to be applied to lists of single-group models estimated in 'lavaan' or 'mirt'. Allows item sets that are overlapping but not identical, facilitating alignment in secondary data analysis where not all items may be shared across assessments.
 }
 \author{
 \strong{Maintainer}: Maxwell Mansolf \email{maxwell.mansolf@northwestern.edu} (\href{https://orcid.org/0000-0001-6861-8657}{ORCID})

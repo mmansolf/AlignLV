@@ -77,9 +77,33 @@
 #' Defaults to 1 for no parallel processing. Requires the \code{doParallel}
 #' package and defaults to parallel processing if not installed.
 #'
+#' @returns A \code{list} with the following elements:
+#' * \code{fit} A `list` of fitted objects of type \code{mirt} or \code{lavaan}, depending
+#' on the estimator, where models were re-estimated with means and variances
+#' set to those obtained from alignment.
+#' * `est.og` A nested `list` of parameter estimates and standard errors provided to
+#' the alignment optimizer from the provided models. Each element corresponds
+#' to a provided model, and each element thereof corresponds to a parameter
+#' name (e.g., `a` and `d` parameters from `mirt.grm`) and contains a matrix of
+#' the corresponding estimates.
+#' * `est` The estimates from `est.og`, transformed after alignment using the
+#' obtained mean and variance estimates therefrom.
+#' * `hypers` A `list` of two-element numeric vectors, where `mean` gives the
+#' estimated mean from alignment in the corresponding group, and `var` the
+#' estimated variance.
+#' * `parout` Optimizer output for the alignment step, used to examine
+#' convergence. Contains the following columns:
+#'     - `f` The final complexity function value from alignment.
+#'     - `convergence` The `convergence` output from \code{\link[stats]{optim}}
+#'     - `M.2` to `M.`(number of groups minus 2) The estimated means from
+#'     alignment
+#'     - `V.2` to `M.`(number of groups minus 2) The estimated variances from
+#'     alignment
+#'
 #' @export
 #'
 #' @examples
+#' options(warnPartialMatchArgs = FALSE)
 #' #load data
 #' library(mirt)
 #' library(lavaan)
@@ -196,6 +220,7 @@ Alignment=function(fitList,estimator,SE=FALSE,
                    bifactor.marginal=FALSE,
                    hyper.first='variances',center.means=TRUE,
                    nstarts=10,ncores=1){
+  options(warnPartialMatchArgs = FALSE)
   if(estimator=='mirt.grm'){
     #get all estimates
     est=fitList%>%purrr::map(getEstimates.mirt,SE=SE,

@@ -9,7 +9,7 @@ bibentry(
   volume   = 4,
   number   = 1,
   pages    = 'Online Only',
-  doi      = 'https://doi.org/10.1002/jcv2.12198'
+  doi      = '10.1002/jcv2.12198'
 )
 
 bibentry(
@@ -21,5 +21,5 @@ bibentry(
   volume   = 80,
   number   = 5,
   pages    = '870-909',
-  doi      = 'https://doi.org/10.1177/0013164419897307'
+  doi      = '10.1177/0013164419897307'
 )

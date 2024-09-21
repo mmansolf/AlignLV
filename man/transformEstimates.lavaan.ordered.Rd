@@ -9,7 +9,7 @@ transformEstimates.lavaan.ordered(
   align.mean,
   align.variance,
   est,
-  toCompare = F
+  toCompare = FALSE
 )
 }
 \arguments{

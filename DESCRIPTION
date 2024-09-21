@@ -1,14 +1,14 @@
 Package: AlignLV
-Title: Multiple Group Item Response Theory Alignment Helpers for Lavaan and Mirt
-Version: 0.0.0.9000
+Title: Multiple Group Item Response Theory Alignment Helpers for 'lavaan' and 'mirt'
+Version: 0.1.0.0
 Authors@R: 
     person("Maxwell", "Mansolf", , "maxwell.mansolf@northwestern.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-6861-8657"))
-Description: Allows for multiple group item response theory alignment a la Mplus to be applied to lists of single-group models estimated in lavaan or mirt. Allows item sets that are overlapping but not identical, facilitating alignment in secondary data analysis where not all items may be shared across assessments.
+Description: Allows for multiple group item response theory alignment a la 'Mplus' to be applied to lists of single-group models estimated in 'lavaan' or 'mirt'. Allows item sets that are overlapping but not identical, facilitating alignment in secondary data analysis where not all items may be shared across assessments.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.1
+RoxygenNote: 7.3.2
 Imports: 
     abind,
     mirt,

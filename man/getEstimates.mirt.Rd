@@ -13,6 +13,9 @@ getEstimates.mirt(fit, SE = FALSE, bifactor.marginal = FALSE)
 
 \item{bifactor.marginal}{See \code{\link{Alignment}} documentation.}
 }
+\value{
+A \code{list} of estimates in a format amenable to subsequent alignment
+}
 \description{
 Not generally intended to be used on its own, but exported anyway for
 didactic purposes.

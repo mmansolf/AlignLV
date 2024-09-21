@@ -69,6 +69,34 @@ can speed up the alignment step by roughly a factor of the number of cores.
 Defaults to 1 for no parallel processing. Requires the \code{doParallel}
 package and defaults to parallel processing if not installed.}
 }
+\value{
+A \code{list} with the following elements:
+\itemize{
+\item \code{fit} A \code{list} of fitted objects of type \code{mirt} or \code{lavaan}, depending
+on the estimator, where models were re-estimated with means and variances
+set to those obtained from alignment.
+\item \code{est.og} A nested \code{list} of parameter estimates and standard errors provided to
+the alignment optimizer from the provided models. Each element corresponds
+to a provided model, and each element thereof corresponds to a parameter
+name (e.g., \code{a} and \code{d} parameters from \code{mirt.grm}) and contains a matrix of
+the corresponding estimates.
+\item \code{est} The estimates from \code{est.og}, transformed after alignment using the
+obtained mean and variance estimates therefrom.
+\item \code{hypers} A \code{list} of two-element numeric vectors, where \code{mean} gives the
+estimated mean from alignment in the corresponding group, and \code{var} the
+estimated variance.
+\item \code{parout} Optimizer output for the alignment step, used to examine
+convergence. Contains the following columns:
+\itemize{
+\item \code{f} The final complexity function value from alignment.
+\item \code{convergence} The \code{convergence} output from \code{\link[stats]{optim}}
+\item \code{M.2} to \code{M.}(number of groups minus 2) The estimated means from
+alignment
+\item \code{V.2} to \code{M.}(number of groups minus 2) The estimated variances from
+alignment
+}
+}
+}
 \description{
 Performs alignment (\url{https://www.statmodel.com/Alignment.shtml}) using
 single-group models estimated in mirt or lavaan.
@@ -107,6 +135,7 @@ be modified, but you can access \code{\link{transformEstimates.lavaan.ordered}}
 directly if you want to play around.
 }
 \examples{
+options(warnPartialMatchArgs = FALSE)
 #load data
 library(mirt)
 library(lavaan)

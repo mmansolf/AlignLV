@@ -11,6 +11,8 @@
 #' @param SE logical; whether to also obtain standard errors.
 #' @param bifactor.marginal See \code{\link{Alignment}} documentation.
 #'
+#' @returns A `list` of estimates in a format amenable to subsequent alignment
+#'
 #' @export
 getEstimates.mirt=function(fit,SE=FALSE,bifactor.marginal=FALSE){
 
@@ -116,14 +118,14 @@ getEstimates.mirt=function(fit,SE=FALSE,bifactor.marginal=FALSE){
           colnames(d.toalign2)[ncol(d.toalign2)]=
             paste0('d.',
                    as.numeric(
-                     strsplit(colnames(d.toalign2)[ncol(d.toalign2)-1],'.',fixed=T)%>%purrr::map_chr(~.[2])
+                     strsplit(colnames(d.toalign2)[ncol(d.toalign2)-1],'.',fixed=TRUE)%>%purrr::map_chr(~.[2])
                    )+1)
           if(SE){
             se.d.toalign2=cbind(se.d.toalign2,NA)
             colnames(se.d.toalign2)[ncol(se.d.toalign2)]=
               paste0('d.',
                      as.numeric(
-                       strsplit(colnames(se.d.toalign2)[ncol(se.d.toalign2)-1],'.',fixed=T)%>%purrr::map_chr(~.[2])
+                       strsplit(colnames(se.d.toalign2)[ncol(se.d.toalign2)-1],'.',fixed=TRUE)%>%purrr::map_chr(~.[2])
                      )+1)
           }
         }
@@ -261,6 +263,7 @@ getEstimates.lavaan=function(fit,SE=TRUE){
 #'
 #' @export
 transformEstimates.mirt.grm=function(align.mean,align.variance,est){
+
   #unpack est
   a=est$a
   d=est$d
@@ -290,7 +293,7 @@ transformEstimates.mirt.grm=function(align.mean,align.variance,est){
     if(SE) se.a=se.a*1/sqrt(align.variance)
     d=d-align.mean*matrix(a,
                           nrow(d),
-                          ncol(d),byrow=F)
+                          ncol(d),byrow=FALSE)
   } else stop(paste0('Either transform one model (scalar mean & variance, ',
   '2D arrays in est) or a set (vector mean & variance with equal lengths, ',
   '3D arrays in est, and length(mean)==dim(est)[3]'))
@@ -318,7 +321,8 @@ transformEstimates.mirt.grm=function(align.mean,align.variance,est){
 #' @export
 transformEstimates.lavaan.ordered=function(align.mean,
                                            align.variance,
-                                           est,toCompare=F){
+                                           est,toCompare=FALSE){
+
   #My current thinking: under the delta parameterization, the transformed
   #estimates (calculate delta, incorporate it into parameters, then
   #transform parameters, BUT don't reverse the delta transformation) do NOT
@@ -386,23 +390,23 @@ transformEstimates.lavaan.ordered=function(align.mean,
       se.lambda=se.lambda*1/sqrt(align.variance)
       tau=tau+align.mean*matrix(lambda,
                                 nrow(tau),
-                                ncol(tau),byrow=F)
+                                ncol(tau),byrow=FALSE)
     } else if(est$parameterization=='delta' & toCompare){
       #get deltas
       delta=sqrt(1-lambda^2)
       #convert to theta parameterization
       lambda=lambda/delta
-      tau=tau/matrix(delta,nrow(tau),ncol(tau),byrow=F)
+      tau=tau/matrix(delta,nrow(tau),ncol(tau),byrow=FALSE)
       #now, transform
       lambda=lambda*1/sqrt(align.variance)
       se.lambda=se.lambda*1/sqrt(align.variance)
       tau=tau+align.mean*matrix(lambda,
                                 nrow(tau),
-                                ncol(tau),byrow=F)
+                                ncol(tau),byrow=FALSE)
       #convert back?
       if(!toCompare){
         lambda=lambda*delta
-        tau=tau*matrix(delta,nrow(tau),ncol(tau),byrow=F)
+        tau=tau*matrix(delta,nrow(tau),ncol(tau),byrow=FALSE)
       }
     } else stop('Parameterization not found! Must be "delta" or "theta"')
   } else stop(paste0('Either transform one model (scalar mean & variance, ',
@@ -412,7 +416,7 @@ transformEstimates.lavaan.ordered=function(align.mean,
                      'is used (the default in lavaan), toCompare must be set ',
                      'to determine whether you want the parameters of an ',
                      'equivalent model with incomparable parameters ',
-                     '(toCompare=F) or comparable parameters (toCompare=T).'))
+                     '(toCompare=FALSE) or comparable parameters (toCompare=T).'))
   return(list(lambda=lambda,tau=tau,
               se.lambda=se.lambda,se.tau=se.tau))
 }
@@ -433,31 +437,35 @@ transformEstimates.lavaan.ordered=function(align.mean,
 #' @param do.fit Whether to re-fit the model after loading and fixing estimates.
 #'
 #' @export
-loadEstimates.mirt.grm=function(fit,align.mean,align.variance,newpars,do.fit=T){
+loadEstimates.mirt.grm=function(fit,align.mean,
+                                align.variance,newpars,do.fit=TRUE){
+
   #get call
   call=fit@Call%>%deparse
   if(length(call)>1)call=paste(call,collapse='')
   #if "fun" made its way in there, replace it with mirt
-  call=gsub('fun(','mirt(',call,fixed=T)
-  call=gsub('..4','fit@Options$technical',call,fixed=T)
+  call=gsub('fun(','mirt(',call,fixed=TRUE)
+  call=gsub('..4','fit@Options$technical',call,fixed=TRUE)
   #replace data
-  call.split=strsplit(call,'=',fixed=T)
-  call.split=purrr::map(call.split[[1]],strsplit,',',fixed=T)%>%purrr::map(~.[[1]])
+  call.split=strsplit(call,'=',fixed=TRUE)
+  call.split=purrr::map(call.split[[1]],strsplit,',',fixed=TRUE)%>%purrr::map(~.[[1]])
   call.split[[2]]=c('fit@Data$data',call.split[[2]][length(call.split[[2]])])
   call=call.split%>%purrr::map_chr(paste,collapse=',')%>%paste(collapse='=')
   #run it again with pars='values'
   call.pars=paste0(substr(call,1,nchar(call)-1),
                    ", pars = 'values')")
-  call.pars=gsub('pars = pars,','',call.pars,fixed=T)
+  # call.pars=gsub('pars = pars,','',call.pars,fixed=TRUE)
+  #chatgpt gave me this
+  call.pars=gsub("pars = ([^,\\)]+)([,\\)])", "pars = \\1\\2", call.pars, perl = TRUE)
+
   #bring in mod from @Model$model if model = mod is contained in call.pars
-  if(!grepl('model = 1',call.pars,fixed=T)){
-    modName=strsplit(call.pars,'model = ',fixed=T)[[1]][2]%>%
-      strsplit(',',fixed=T)%>%purrr::map_chr(~.[1])%>%trimws
-    call.pars=gsub(modName,'myMod',call.pars,fixed=T)
-    call=gsub(modName,'myMod',call,fixed=T)
+  if(!grepl('model = 1',call.pars,fixed=TRUE)){
+    modName=strsplit(call.pars,'model = ',fixed=TRUE)[[1]][2]%>%
+      strsplit(',',fixed=TRUE)%>%purrr::map_chr(~.[1])%>%trimws
+    call.pars=gsub(modName,'myMod',call.pars,fixed=TRUE)
+    call=gsub(modName,'myMod',call,fixed=TRUE)
     myMod=fit@Model$model
   }
-  print(call.pars)
   pars=eval(parse(text=call.pars))
   #load 'em up: slopes
   for(i in 1:nrow(newpars$a)){
@@ -468,12 +476,19 @@ loadEstimates.mirt.grm=function(fit,align.mean,align.variance,newpars,do.fit=T){
     }
   }
   #load 'em up: locations
-  for(i in 1:nrow(newpars$d)){
-    for(j in 1:ncol(newpars$d)){
-      if(!is.na(newpars$d[i,j]))
-        pars$value[pars$item==rownames(newpars$d)[i] &
-                     pars$name==gsub(".",'',colnames(newpars$d)[j],fixed=T)]=
-          newpars$d[i,j]
+  #mins
+  mins=(fit@Data$mins-min(fit@Data$mins))[
+    rownames(newpars$d)
+  ]
+  for (i in 1:nrow(newpars$d)) {
+    for (j in 1:ncol(newpars$d)) {
+      if (!is.na(newpars$d[i,j]))
+        pars$value[pars$item == rownames(newpars$d)[i] &
+                     pars$name == gsub(".","",colnames(newpars$d)[j],
+                                       fixed=T)%>%purrr::map_chr(function(x)paste0(
+                                         substr(x,1,1),
+                                         as.numeric(substr(x,3,3))-mins[i]
+                                       ))]=newpars$d[i,j]
     }
   }
   #load 'em up: means and variances
@@ -481,7 +496,7 @@ loadEstimates.mirt.grm=function(fit,align.mean,align.variance,newpars,do.fit=T){
   pars$value[pars$name=='COV_11']=align.variance
   if(do.fit){
     #add pars, if not there already (?)
-    if(!grepl('pars = pars',call,fixed=T)){
+    if(!grepl('pars = pars',call,fixed=TRUE)){
       newcall=paste0(substr(call,1,nchar(call)-1),
                      ", pars = pars)")
       out=eval(parse(text=newcall))
@@ -507,7 +522,8 @@ loadEstimates.mirt.grm=function(fit,align.mean,align.variance,newpars,do.fit=T){
 #'
 #' @export
 loadEstimates.lavaan.ordered=function(fit,align.mean,align.variance,
-                                      newpars,do.fit=T){
+                                      newpars,do.fit=TRUE){
+
   #get data and partable
   dat=fit@Data
   pt=fit@ParTable%>%tibble::as_tibble()
@@ -525,7 +541,7 @@ loadEstimates.lavaan.ordered=function(fit,align.mean,align.variance,
   for(i in 1:nrow(newpars$tau)){
     for(j in 1:ncol(newpars$tau)){
       pt$start[pt$lhs==rownames(newpars$tau)[i] &
-                 pt$rhs==gsub(".",'',colnames(newpars$tau)[j],fixed=T)]=
+                 pt$rhs==gsub(".",'',colnames(newpars$tau)[j],fixed=TRUE)]=
         newpars$tau[i,j]
     }
   }
@@ -555,6 +571,7 @@ loadEstimates.lavaan.ordered=function(fit,align.mean,align.variance,
 #'
 #' @export
 stackEstimates=function(estList){
+
   if(length(estList)==1){
     estList
   } else {
@@ -655,6 +672,7 @@ W=function(x,y) return(sqrt(x*y))
 SF.mplus3D=function(pars,est,comb,nobs,estimator,
                     eps.alignment,clf.ignore.quantile,
                     hyper='all',otherHyper=NULL){
+
   #unlist sample sizes
   if(is.list(nobs))nobs=unlist(nobs)
   ngroups=length(nobs)
@@ -678,33 +696,16 @@ SF.mplus3D=function(pars,est,comb,nobs,estimator,
     t.est=transformEstimates.mirt.grm(means,variances,est)
     t.est=t.est[c('a','d')]
   } else if(estimator=='lavaan.ordered'){
-    t.est=transformEstimates.lavaan.ordered(means,variances,est,toCompare=T)
+    t.est=transformEstimates.lavaan.ordered(means,variances,est,toCompare=TRUE)
     t.est=t.est[c('lambda','tau')]
   }
-  # m=sum(CLF(mA-mB),na.rm=T)
   out=t.est%>%purrr::map(function(x)CLF(x[,,comb[1,]]-x[,,comb[2,]],e=eps.alignment)*
                 W(nobs[comb[1,]],nobs[comb[2,]])/
                 sum(!is.na(x[,,comb[1,]]-x[,,comb[2,]])))
   out=Reduce(c,out)
-  out=ifelse(out<stats::quantile(out,clf.ignore.quantile,na.rm=T),
-           0,out)%>%sum(na.rm=T)
+  out=ifelse(out<stats::quantile(out,clf.ignore.quantile,na.rm=TRUE),
+           0,out)%>%sum(na.rm=TRUE)
 }
-
-#factory function
-factory <- function(fun){
-  function(...) {
-    warn <- err <- NULL
-    res <- withCallingHandlers(
-      tryCatch(fun(...), error=function(e) {
-        err <<- conditionMessage(e)
-        NULL
-      }), warning=function(w) {
-        warn <<- append(warn, conditionMessage(w))
-        invokeRestart("muffleWarning")
-      })
-    list(res, warn=warn, err=err)
-  }}
-fact.mirt=factory(mirt::mirt)
 
 #' Runs alignment optimizer
 #'
@@ -878,8 +879,6 @@ align.optim=function(stacked,n,estimator,nstarts=50,ncores=3,
         }
       }
     }
-    print('Alignment done!')
-    print(proc.time()-pct)
     parout=parmx%>%stats::setNames(1:nstarts)%>%dplyr::bind_cols()%>%t()
 
     #reject runs that failed
@@ -929,6 +928,5 @@ Increase starting values or add more common items across groups.')
                      as.list(align.means),
                      as.list(align.variances),SIMPLIFY=FALSE),
            parout=parout,nFailedRuns=nFailedRuns)
-  # print(out)
   return(out)
 }
