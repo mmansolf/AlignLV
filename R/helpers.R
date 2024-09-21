@@ -456,9 +456,10 @@ loadEstimates.mirt.grm=function(fit,align.mean,
   if(verbose) cat(call)
   # call.pars=gsub("pars = ([^,\\)]+)([,\\)])", "pars = \\1\\2", call, perl = TRUE)
   call.pars=gsub("pars = [^,\\)]+", "", call)
+  call.pars=gsub("verbose = [^,\\)]+", "", call.pars)
   if(verbose) cat(call.pars)
 
-  call.pars=paste0(substr(call,1,nchar(call)-1),
+  call.pars=paste0(substr(call.pars,1,nchar(call.pars)-1),
                    ", pars = 'values', verbose = ",verbose,')')
   # call.pars=gsub('pars = pars,','',call.pars,fixed=TRUE)
   #chatgpt gave me this
@@ -503,11 +504,14 @@ loadEstimates.mirt.grm=function(fit,align.mean,
   pars$value[pars$name=='COV_11']=align.variance
   if(do.fit){
     #add pars, if not there already (?)
-    if(!grepl('pars = pars',call,fixed=TRUE)){
-      newcall=paste0(substr(call,1,nchar(call)-1),
-                     ", pars = pars, verbose = ",verbose,')')
-      out=eval(parse(text=newcall))
-    } else out=eval(parse(text=call))
+    # if(!grepl('pars = pars',call,fixed=TRUE)){
+    #   newcall=paste0(substr(call,1,nchar(call)-1),
+    #                  ", pars = pars, verbose = ",verbose,')')
+    #   out=eval(parse(text=newcall))
+    # } else out=eval(parse(text=call))
+    #replace pars='values' with pars=pars
+    call.final=gsub("pars = 'values'","pars = pars", call.pars,fixed=TRUE)
+    out=eval(parse(text=call.final))
   } else out=pars
   out
 }
