@@ -134,11 +134,13 @@
 #' test.lavaan=transformEstimates.lavaan.ordered(
 #'               newMean,newVar,est.lavaan,toCompare=TRUE)
 #' #load and test equivalence
-#' tfit.mirt=loadEstimates.mirt.grm(fit.mirt,newMean,newVar,newpars=test.mirt)
+#' tfit.mirt=loadEstimates.mirt.grm(fit.mirt,newMean,newVar,newpars=test.mirt,
+#'                                  verbose=TRUE)
 #' test.mirt=mirt::coef(fit.mirt)
 #' test.mirt
 #' tfit.lavaan=loadEstimates.lavaan.ordered(
-#'               fit.lavaan,newMean,newVar,newpars=test.lavaan)
+#'               fit.lavaan,newMean,newVar,newpars=test.lavaan,
+#'               verbose=TRUE)
 #' tfit.lavaan@ParTable%>%tibble::as_tibble()%>%print(n=Inf)
 #' test.lavaan
 #'
@@ -180,9 +182,11 @@
 #' align.stack=align.optim(stackEstimates(est.base),c(100,200),nstarts=3,
 #'                         hyper.first='variances',ncores=1,
 #'                         eps.alignment=0.01,clf.ignore.quantile=0.1,
-#'                         estimator='lavaan.ordered',center.means=FALSE)
+#'                         estimator='lavaan.ordered',center.means=FALSE,
+#'                         verbose=TRUE)
 #' align.stack
-#' fit.align=Alignment(fit.base,'lavaan.ordered',center.means=FALSE,SE=TRUE)
+#' fit.align=Alignment(fit.base,'lavaan.ordered',center.means=FALSE,SE=TRUE,
+#'             verbose=TRUE)
 #'
 #' #mirt
 #' fit.base2=list()
@@ -198,7 +202,8 @@
 #' align.stack2=align.optim(stackEstimates(est.base2),c(100,200),nstarts=3,
 #'                          hyper.first='variances',ncores=1,
 #'                          eps.alignment=0.01,clf.ignore.quantile=0.1,
-#'                          estimator='mirt.grm',center.means=FALSE)
+#'                          estimator='mirt.grm',center.means=FALSE,
+#'                          verbose=TRUE)
 #' align.stack2
 #' fit.align2=Alignment(fit.base2,'mirt.grm',center.means=FALSE,SE=TRUE)
 #'
