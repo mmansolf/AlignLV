@@ -453,10 +453,12 @@ loadEstimates.mirt.grm=function(fit,align.mean,
   call.split[[2]]=c('fit@Data$data',call.split[[2]][length(call.split[[2]])])
   call=call.split%>%purrr::map_chr(paste,collapse=',')%>%paste(collapse='=')
   #run it again with pars='values'
+  if(verbose) cat(call.pars)
   call.pars=paste0(substr(call,1,nchar(call)-1),
                    ", pars = 'values', verbose = ",verbose,')')
   # call.pars=gsub('pars = pars,','',call.pars,fixed=TRUE)
   #chatgpt gave me this
+  if(verbose) cat(call.pars)
   call.pars=gsub("pars = ([^,\\)]+)([,\\)])", "pars = \\1\\2", call.pars, perl = TRUE)
 
   if(verbose) cat(call.pars)
