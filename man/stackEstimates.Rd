@@ -8,7 +8,12 @@ stackEstimates(estList)
 }
 \arguments{
 \item{estList}{List of estimates from \code{\link{getEstimates.lavaan}} or
-\code{\link{getEstimates.mirt}} to stack to feed into \code{\link{SF.mplus3D}}}
+\code{\link{getEstimates.mirt}} to stack to feed into
+\code{\link{SF.mplus3D}}}
+}
+\value{
+A set of estimates prepared for efficient use with
+\code{\link{SF.mplus3D}}
 }
 \description{
 Not generally intended to be used on its own, but exported anyway for
@@ -16,6 +21,4 @@ didactic purposes.
 }
 \details{
 See example for \code{\link{Alignment}} for examples
-
-This may differ from what is used in Mplus.
 }

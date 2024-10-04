@@ -32,8 +32,18 @@
 #' transformed parameters are to be compared for equivalence across groups.
 #' Turning it off results in NOT applying the reverse of the delta
 #' transformation at the end. This currently is fixed to TRUE and cannot
-#' be modified, but you can access \code{\link{transformEstimates.lavaan.ordered}}
+#' be modified, but you can access
+#' \code{\link{transformEstimates.lavaan.ordered}}
 #' directly if you want to play around.
+#'
+#' If `parallel==TRUE`, a parallel backend with the `doParallel` package
+#' leverages multi-core processing if the number of cores specified in
+#' `ncores` is greater than one. Uses \code{\link[doRNG]{%dorng%}} to pass the
+#' R session's seed to the alignment optimizer, such that you can replicate
+#' random starts with `set.seed` (see example).
+#'
+#' This program was designed based on the published work of Asparouhov & Muthen,
+#' and was not intended to match Mplus exactly, and may not.
 #'
 #' @param fitList A \code{list} of fitted model objects. Currently only works
 #' for single-group, unidimensional or bifactor models with no covariates
@@ -66,7 +76,8 @@
 #' @param center.means A logical scalar. Alignment fixes the first group's mean
 #' to zero to estimate the others. If \code{center.means} is \code{TRUE}
 #' (default), aligned means and models are returned after subtracting the
-#' weighted mean \code{\link[stats]{weighted.mean}} from all mean estimates, yielding
+#' weighted mean \code{\link[stats]{weighted.mean}} from all mean estimates,
+#' yielding
 #' a (weighted) grand mean of zero. Variances are automatically rescaled such
 #' that their weighted product (i.e., log of weighted mean of
 #' \code{e^(variance)}) is 1.
@@ -74,14 +85,18 @@
 #' @param ncores Number of processor cores to distribute alignment starts
 #' across; on systems that support multicore processing, using additional cores
 #' can speed up the alignment step by roughly a factor of the number of cores.
-#' Defaults to 1 for no parallel processing. Requires the \code{doParallel}
-#' package and defaults to parallel processing if not installed.
+#' Defaults to 1 for no parallel processing. Requires the \code{doRNG}
+#' package and defaults to sequential processing if not installed.
+#' @param verbose Whether stuff gets printed to the console. May
+#' help with debugging.
 #'
 #' @returns A \code{list} with the following elements:
-#' * \code{fit} A `list` of fitted objects of type \code{mirt} or \code{lavaan}, depending
+#' * \code{fit} A `list` of fitted objects of type \code{mirt} or \code{lavaan},
+#'  depending
 #' on the estimator, where models were re-estimated with means and variances
 #' set to those obtained from alignment.
-#' * `est.og` A nested `list` of parameter estimates and standard errors provided to
+#' * `est.og` A nested `list` of parameter estimates and standard errors
+#' provided to
 #' the alignment optimizer from the provided models. Each element corresponds
 #' to a provided model, and each element thereof corresponds to a parameter
 #' name (e.g., `a` and `d` parameters from `mirt.grm`) and contains a matrix of
@@ -103,7 +118,6 @@
 #' @export
 #'
 #' @examples
-#' options(warnPartialMatchArgs = FALSE)
 #' #load data
 #' library(mirt)
 #' library(lavaan)
@@ -175,10 +189,20 @@
 #' fit.base%>%purrr::map(lavInspect,'est')%>%purrr::transpose()
 #' est.base=purrr::map(fit.base,getEstimates.lavaan,SE=TRUE)
 #' #not run: using parallel processes with ncores=3
+#' set.seed(1)
 #' # align.stack=align.optim(stackEstimates(est.base),c(100,200),nstarts=3,
 #' #                         hyper.first='variances',ncores=3,
 #' #                         eps.alignment=0.01,clf.ignore.quantile=0.1,
-#' #                         estimator='lavaan.ordered',center.means=FALSE)
+#' #                        estimator='lavaan.ordered',center.means=FALSE,
+#' #                        verbose=TRUE)
+#' # #same seed
+#' # set.seed(1)
+#' # align.stack=align.optim(stackEstimates(est.base),c(100,200),nstarts=3,
+#' #                         hyper.first='variances',ncores=3,
+#' #                         eps.alignment=0.01,clf.ignore.quantile=0.1,
+#' #                         estimator='lavaan.ordered',center.means=FALSE,
+#' #                         verbose=TRUE)
+#' #sequential
 #' align.stack=align.optim(stackEstimates(est.base),c(100,200),nstarts=3,
 #'                         hyper.first='variances',ncores=1,
 #'                         eps.alignment=0.01,clf.ignore.quantile=0.1,
@@ -193,7 +217,8 @@
 #' for(i in 1:length(sim.base)){
 #'   fit.base2[[i]]=mirt(sim.base[[i]],1,'graded',SE=TRUE)
 #' }
-#' est.base2=purrr::map(fit.base2,getEstimates.mirt,SE=TRUE,bifactor.marginal=FALSE)
+#' est.base2=purrr::map(fit.base2,getEstimates.mirt,SE=TRUE,
+#' bifactor.marginal=FALSE)
 #' #not run: using parallel processes with ncores=3
 #' # align.stack2=align.optim(stackEstimates(est.base2),c(100,200),nstarts=3,
 #' #                          hyper.first='variances',ncores=3,
@@ -214,10 +239,12 @@
 #' fit.align2$est%>%purrr::transpose()%>%purrr::map(~mean(.[[1]]-.[[2]]))
 #' fit.align$fit
 #' fit.align2$fit
-#' (fit.align$fit%>%purrr::map(~.@ParTable%>%tibble::as_tibble()%>%dplyr::filter(free!=0))%>%
+#' (fit.align$fit%>%purrr::map(~.@ParTable%>%
+#' tibble::as_tibble()%>%dplyr::filter(free!=0))%>%
 #'   purrr::transpose())[c('start','est')]%>%purrr::map(~mean(.[[1]]-.[[2]]))
 #' (fit.align2$fit%>%purrr::map(coef)%>%
-#'     purrr::transpose())[paste0('Item_',1:3)]%>%purrr::map(~mean(.[[1]]-.[[2]]))
+#'     purrr::transpose())[paste0('Item_',1:3)]%>%
+#'     purrr::map(~mean(.[[1]]-.[[2]]))
 #' #appears so!
 #'
 Alignment=function(fitList,estimator,SE=FALSE,
@@ -225,8 +252,7 @@ Alignment=function(fitList,estimator,SE=FALSE,
                    bifactor.marginal=FALSE,
                    hyper.first='variances',center.means=TRUE,
                    nstarts=10,ncores=1,
-                   verbose=T){
-  options(warnPartialMatchArgs = FALSE)
+                   verbose=TRUE){
   if(estimator=='mirt.grm'){
     #get all estimates
     est=fitList%>%purrr::map(getEstimates.mirt,SE=SE,
@@ -268,7 +294,7 @@ Alignment=function(fitList,estimator,SE=FALSE,
     #get aligned estimates
     test=purrr::map2(est,means.vars
                      ,~transformEstimates.lavaan.ordered(.y[1],.y[2],.x,
-                                                         toCompare=T))
+                                                         toCompare=TRUE))
     #fitted, aligned models
     tfit=list(fitList,test,means.vars)%>%purrr::pmap(
       function(x,y,z)loadEstimates.lavaan.ordered(x,z[1],z[2],y,

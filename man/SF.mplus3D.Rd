@@ -37,6 +37,9 @@ SF.mplus3D(
 
 \item{otherHyper}{Non-included hyperparameter}
 }
+\value{
+A value of the simplicity function from Asparouhuv & Muthen, 2014.
+}
 \description{
 Not generally intended to be used on its own, but exported anyway for
 didactic purposes.
@@ -44,5 +47,6 @@ didactic purposes.
 \details{
 See example for \code{\link{Alignment}} for examples
 
-This may differ from what is used in Mplus.
+This program was designed based on the published work of Asparouhov & Muthen,
+and was not intended to match Mplus exactly, and may not.
 }

@@ -23,6 +23,12 @@ loadEstimates.lavaan.ordered(
 \item{newpars}{New (transformed) estimates to load into model object.}
 
 \item{do.fit}{Whether to re-fit the model after loading and fixing estimates.}
+
+\item{verbose}{See \code{\link{Alignment}} documentation.}
+}
+\value{
+A \code{lavaan} object, based on \code{fit} but with modified
+parameters.
 }
 \description{
 Not generally intended to be used on its own, but exported anyway for
@@ -31,5 +37,6 @@ didactic purposes.
 \details{
 See example for \code{\link{Alignment}} for examples
 
-This may differ from what is used in Mplus.
+This program was designed based on the published work of Asparouhov & Muthen,
+and was not intended to match Mplus exactly, and may not.
 }

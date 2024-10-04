@@ -35,6 +35,19 @@ align.optim(
 \item{eps.alignment}{See \code{\link{Alignment}} documentation.}
 
 \item{clf.ignore.quantile}{See \code{\link{Alignment}} documentation.}
+
+\item{verbose}{See \code{\link{Alignment}} documentation.}
+}
+\value{
+A \code{list} of results from multiple runs of the alignment optimizer:
+\itemize{
+\item \code{mv} Means and variances from each alignment run.
+\item \code{parout} A table of outputs from \code{link[stats]{optim}} containing the
+function values, convergence information, and resulting estimates of means
+and variances from each run.
+\item \code{nFailedRuns} The number of runs that failed to complete. An error is
+returned if no runs fail.
+}
 }
 \description{
 Not generally intended to be used on its own, but exported anyway

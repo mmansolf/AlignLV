@@ -23,5 +23,6 @@ didactic purposes.
 \details{
 See example for \code{\link{Alignment}} for examples
 
-This may differ from what is used in Mplus.
+This program was designed based on the published work of Asparouhov & Muthen,
+and was not intended to match Mplus exactly, and may not.
 }

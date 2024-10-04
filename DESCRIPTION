@@ -21,6 +21,7 @@ Imports:
     tidyr,
     rlang
 Suggests: 
+    doRNG,
     doParallel,
     foreach,
     testthat (>= 3.0.0)

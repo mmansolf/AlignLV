@@ -14,6 +14,11 @@ transformEstimates.mirt.grm(align.mean, align.variance, est)
 
 \item{est}{Estimates to transform, from \code{\link{getEstimates.mirt}}}
 }
+\value{
+Estimates in the same structure as from
+\code{\link{getEstimates.mirt}}, but transformed from (assumed) mean 0 and
+variance 1 to the metric specified by \code{align.mean} and \code{align.variance}.
+}
 \description{
 Not generally intended to be used on its own, but exported anyway for
 didactic purposes.
@@ -21,5 +26,6 @@ didactic purposes.
 \details{
 See example for \code{\link{Alignment}} for examples
 
-This may differ from what is used in Mplus.
+This program was designed based on the published work of Asparouhov & Muthen,
+and was not intended to match Mplus exactly, and may not.
 }
